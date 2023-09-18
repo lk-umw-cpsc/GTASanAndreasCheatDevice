@@ -15,12 +15,18 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 
 WantedLevel wantedLevel;
 Pedestrian player;
+Vehicle vehicle;
 
 void init() {
-	wantedLevel = hookWantedLevel(*pWantedLevelBaseAddress);
-	player = hookPedestrian(*pPlayerPedBaseAddress);
+	hookWantedLevel(*pWantedLevelBaseAddress, &wantedLevel);
+	hookPedestrian(*pPlayerPedBaseAddress, &player);
 }
 
 void hack() {
-
+	unsigned int vehicleBaseAddress = *pPlayerVehicleBaseAddress;
+	if (vehicleBaseAddress) {
+		hookVehicle(vehicleBaseAddress, &vehicle);
+	} else {
+		vehicle.baseAddress = NULL;
+	}
 }

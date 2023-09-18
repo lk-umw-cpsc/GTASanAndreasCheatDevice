@@ -1,12 +1,12 @@
 #include "GTA.h"
 
-void hookWantedLevel(unsigned int baseAddress, WantedLevel *wlOut) {
+void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut) {
 	wlOut->baseAddress = baseAddress;
 	wlOut->heat = (int*)(baseAddress + WANTED_LEVEL_HEAT_OFFSET);
 	wlOut->stars = (int*)(baseAddress + WANTED_LEVEL_STARS_OFFSET);
 }
 
-void hookPedestrian(unsigned int baseAddress, Pedestrian *pedOut) {
+void hookPedestrian(unsigned int baseAddress, Pedestrian* pedOut) {
 	pedOut->baseAddress = baseAddress;
 	pedOut->pMultiVectorBaseAddress = (unsigned int*)(baseAddress + MULTI_VECTOR_STRUCT_POINTER_OFFSET);
 	
