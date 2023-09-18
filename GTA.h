@@ -38,8 +38,8 @@ typedef struct WantedLevel {
 	int* heat;
 };
 
-void hookPedestrian(unsigned int baseAddress, Pedestrian* pedOut);
-void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut);
+void hookPedestrian	(unsigned int baseAddress, Pedestrian* pedOut);
+void hookVehicle	(unsigned int baseAddress, Vehicle* vehicleOut);
 void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define PLAYER_PEDESTRIAN_STRUCT_POINTER			0x00B6F5F0
@@ -66,6 +66,6 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define WANTED_LEVEL_HEAT_OFFSET					0x0
 #define WANTED_LEVEL_STARS_OFFSET					0x2C
 
-const unsigned int* pPlayerPedBaseAddress = (unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
+const unsigned int* pPlayerPedBaseAddress = 	(unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
 const unsigned int* pPlayerVehicleBaseAddress = (unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;
-const unsigned int* pWantedLevelBaseAddress = (unsigned int*)WANTED_LEVEL_STRUCT_POINTER;
+const unsigned int* pWantedLevelBaseAddress = 	(unsigned int*)WANTED_LEVEL_STRUCT_POINTER;

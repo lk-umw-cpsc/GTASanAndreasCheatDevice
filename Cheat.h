@@ -5,7 +5,11 @@ private:
 	bool enabled;
 
 public:
-	void (*trigger)();
+	Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)());
+	void (*onEnable)();
+	void (*onFrame)();
+	void (*onDisable)();
+	bool isEnabled();
 	void setEnabled(bool enabled);
 	void toggle();
 };
