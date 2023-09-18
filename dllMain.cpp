@@ -79,5 +79,4 @@ void hoverCar() {
 	if (!vehicle.baseAddress) {
 		return;
 	}
-
 }
