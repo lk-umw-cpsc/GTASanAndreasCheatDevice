@@ -32,5 +32,8 @@
     <ClInclude Include="Cheat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dllMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

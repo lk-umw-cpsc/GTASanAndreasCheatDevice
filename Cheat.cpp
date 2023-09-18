@@ -1,6 +1,7 @@
 #include "Cheat.h"
 
 Cheat::Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)()) {
+	enabled = false;
 	this->onEnable = onEnable;
 	this->onDisable = onDisable;
 	this->onFrame = onFrame;

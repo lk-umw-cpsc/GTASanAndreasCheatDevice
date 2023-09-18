@@ -1,10 +1,10 @@
 #pragma once
 
-typedef struct Vector3d {
+struct Vector3d {
 	float x, y, z;
 };
 
-typedef struct Pedestrian {
+struct Pedestrian {
 	unsigned int baseAddress;
 	unsigned int* pMultiVectorBaseAddress;
 	unsigned int multiVectorBaseAddress;
@@ -19,7 +19,7 @@ typedef struct Pedestrian {
 	float* oxygen;
 };
 
-typedef struct Vehicle {
+struct Vehicle {
 	unsigned int baseAddress;
 	unsigned int* pMultiVectorBaseAddress;
 	unsigned int multiVectorBaseAddress;
@@ -32,14 +32,16 @@ typedef struct Vehicle {
 	float* health;
 };
 
-typedef struct WantedLevel {
+struct WantedLevel {
 	unsigned int baseAddress;
 	int* stars;
 	int* heat;
 };
 
-void hookPedestrian	(unsigned int baseAddress, Pedestrian* pedOut);
-void hookVehicle	(unsigned int baseAddress, Vehicle* vehicleOut);
+void hookPedestrian(unsigned int baseAddress, Pedestrian* pedOut);
+void hookPedestrianMultiVector(unsigned int baseAddress, Pedestrian* pedOut);
+void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut);
+void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut);
 void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define PLAYER_PEDESTRIAN_STRUCT_POINTER			0x00B6F5F0
@@ -66,6 +68,6 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define WANTED_LEVEL_HEAT_OFFSET					0x0
 #define WANTED_LEVEL_STARS_OFFSET					0x2C
 
-const unsigned int* pPlayerPedBaseAddress = 	(unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
-const unsigned int* pPlayerVehicleBaseAddress = (unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;
-const unsigned int* pWantedLevelBaseAddress = 	(unsigned int*)WANTED_LEVEL_STRUCT_POINTER;
+const unsigned int *const pPlayerPedBaseAddress = 		(const unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
+const unsigned int *const pPlayerVehicleBaseAddress =	(const unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;
+const unsigned int *const pWantedLevelBaseAddress = 	(const unsigned int*)WANTED_LEVEL_STRUCT_POINTER;
