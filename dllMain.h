@@ -11,3 +11,4 @@ void infiniteHealth();
 void infiniteHealthOff();
 void infiniteCarHealth();
 void hoverCar();
+void autoFlipCar();
