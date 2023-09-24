@@ -12,3 +12,8 @@ void infiniteHealthOff();
 void infiniteCarHealth();
 void hoverCar();
 void autoFlipCar();
+void installFallOffBikeDetour();
+void fallOffBikeDetour();
+void uninstallFallOffBikeDetour();
+void enableInfiniteAmmo();
+void disableInfiniteAmmo();
