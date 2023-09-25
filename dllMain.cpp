@@ -17,7 +17,6 @@
 	Vehicle mass
 	Car speed
 	Unlock cars
-	Spawn cars
 	Crimes
 	Menu
 */
@@ -145,6 +144,15 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 //
 //	return trampoline;
 //}
+//
+//void (*endSceneTrampoline)(LPDIRECT3DDEVICE9);
+//void endSceneHook(LPDIRECT3DDEVICE9 pDevice) {
+//	D3DRECT r = { 10, 10, 200, 200 };
+//	pDevice->Clear(1, &r, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255, 255, 0, 0), 0, 0);
+//	endSceneTrampoline(pDevice);
+//}
+
+void (*spawnCar)(unsigned short) = (void(*)(unsigned short))0x43A0B0;
 
 WantedLevel wantedLevel;
 Pedestrian player;
@@ -159,15 +167,11 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, nullptr, &hoverCar),
 	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr),
 	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr),
+	new Cheat(&installNoCarDamageDetour, nullptr, nullptr),
+	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
 
-void (*endSceneTrampoline)(LPDIRECT3DDEVICE9);
-void endSceneHook(LPDIRECT3DDEVICE9 pDevice) {
-	D3DRECT r = { 10, 10, 200, 200 };
-	pDevice->Clear(1, &r, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255, 255, 0, 0), 0, 0);
-	endSceneTrampoline(pDevice);
-}
 
 unsigned int originalFunctionCall;
 void init() {
@@ -185,6 +189,8 @@ void init() {
 	cheats[3]->setEnabled(true);
 	cheats[5]->setEnabled(true);
 	cheats[6]->setEnabled(true);
+	cheats[7]->setEnabled(true);
+	cheats[8]->setEnabled(true);
 
 	DWORD oldPolicy;
 	unsigned int hookOffset = (unsigned int)&detour - GAME_LOOP_FUNCTION_CALL - 4;
@@ -222,6 +228,14 @@ void hack() {
 	}
 	if (GetAsyncKeyState(VK_NUMPAD5) & KEY_PRESSED_MASK) {
 		cheats[6]->toggle();
+	}
+
+	if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK) {
+		cheats[8]->toggle();
+	}
+
+	if (GetAsyncKeyState(VK_NUMPAD0) & KEY_PRESSED_MASK) {
+		spawnCar(494);
 	}
 	memset(&gamepadState, 0, sizeof(XINPUT_STATE));
 	usingGamepad = XInputGetState(0, &gamepadState) == ERROR_SUCCESS;
@@ -375,7 +389,6 @@ void installFallOffBikeDetour() {
 }
 
 void fallOffBikeDetour() {
-	//unsigned int returnAddress = 0x4b4ac5;
 	__asm {
 		push ecx
 		mov ecx, 0xb6f5f0 //pplayer
@@ -389,7 +402,7 @@ void fallOffBikeDetour() {
 		sub esp, 0x1C
 		push ebx
 		push esi
-		push 0x4b4ac5 // original return address
+		push 0x4b4ac5 // code immediately after replaced code
 		ret
 	}
 }
@@ -428,4 +441,54 @@ void disableInfiniteAmmo() {
 		memcpy((LPVOID)(infiniteAmmoNOPTargets[i]), (LPVOID)(&originalAmmoDecrementCode[i][0]), WEAPON_AMMO_DECREMENT_SIZE);
 		VirtualProtect((LPVOID)infiniteAmmoNOPTargets[i], WEAPON_AMMO_DECREMENT_SIZE, old, &old);
 	}
+}
+
+BYTE originalCarDamageCall[5];
+void installNoCarDamageDetour() {
+	DWORD jumpDestination;
+	DWORD old;
+	jumpDestination = (DWORD)&noCarDamageDetour - 0x6C24B0 - 0x04;
+	BYTE detour[] = { 0xE9, 0, 0, 0, 0 }; //E9 for jmp
+	memcpy((LPVOID)(detour + 1), (LPVOID)&jumpDestination, sizeof(jumpDestination));
+	VirtualProtect((LPVOID)0x6C24B0, sizeof(detour), PAGE_EXECUTE_READWRITE, &old);
+	memcpy((LPVOID)&originalCarDamageCall, (LPVOID)0x6C24B0, sizeof(originalCarDamageCall));
+	memcpy((LPVOID)0x6C24B0, (LPVOID)detour, sizeof(detour));
+	VirtualProtect((LPVOID)0x6C24B0, sizeof(detour), old, &old);
+}
+
+void noCarDamageDetour() {
+	__asm {
+		push ecx
+		push ebx
+		mov ecx, 0x00BA18FC
+		mov ecx, [ecx]
+		mov ebx, [esp + 0x0C]
+		cmp ecx, ebx
+		pop ebx
+		pop ecx
+		jne notpcar
+		ret 16
+		notpcar:
+		push ebp
+		mov ebp, [esp + 8]
+		push 0x6C24B5
+		ret
+	}
+}
+
+BYTE originalCheckVehicleLockOpcodes[2];
+void enableEnterAnyVehicle() {
+	BYTE nops[2] = { 0xB0, 0x01 };
+	DWORD old;
+	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, PAGE_EXECUTE_READWRITE, &old);
+	memcpy((LPVOID)originalCheckVehicleLockOpcodes, (LPVOID)(VEHICLE_LOCK_CHECK_ADDRESS), VEHICLE_LOCK_CHECK_SIZE);
+	memcpy((LPVOID)(VEHICLE_LOCK_CHECK_ADDRESS), (LPVOID)nops, VEHICLE_LOCK_CHECK_SIZE);
+	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, old, &old);
+}
+
+void disableEnterAnyVehicle() {
+	DWORD existingRights;
+	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, PAGE_EXECUTE_READWRITE, &existingRights);
+	memcpy((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, (LPVOID)originalCheckVehicleLockOpcodes, VEHICLE_LOCK_CHECK_SIZE);
+	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, existingRights, &existingRights);
 }

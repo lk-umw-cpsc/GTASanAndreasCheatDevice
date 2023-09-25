@@ -50,6 +50,8 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define PLAYER_VEHICLE_STRUCT_POINTER				0x00BA18FC
 
 #define MULTI_VECTOR_STRUCT_POINTER_OFFSET			0x14
+#define ID_OFFSET									0x22
+#define TOUCH_POINTER								0xDC
 // Found within above struct
 #define LEFT_VECTOR_STRUCT_OFFSET					0x0
 #define FORWARD_VECTOR_STRUCT_OFFSET				0x10
@@ -65,6 +67,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define PEDESTRIAN_OXYGEN_OFFSET					0x550
 
 #define VEHICLE_HEALTH_OFFSET						0x4C0
+#define VEHICLE_DRIVER_POINTER_OFFSET				0x460
 
 #define WANTED_LEVEL_STRUCT_POINTER					0x00B7CD9C
 #define WANTED_LEVEL_HEAT_OFFSET					0x0
@@ -75,6 +78,9 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define WEAPON_AMMO_DECREMENT3_ADDRESS				0x73FA86 
 #define WEAPON_AMMO_DECREMENT4_ADDRESS				0x73FAAF
 #define WEAPON_AMMO_DECREMENT_SIZE					3
+
+#define VEHICLE_LOCK_CHECK_ADDRESS					0x6D1E59
+#define VEHICLE_LOCK_CHECK_SIZE						2
 
 const unsigned int *const pPlayerPedBaseAddress = 		(const unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
 const unsigned int *const pPlayerVehicleBaseAddress =	(const unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;

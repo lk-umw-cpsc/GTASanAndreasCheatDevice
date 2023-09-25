@@ -17,3 +17,7 @@ void fallOffBikeDetour();
 void uninstallFallOffBikeDetour();
 void enableInfiniteAmmo();
 void disableInfiniteAmmo();
+void installNoCarDamageDetour();
+void noCarDamageDetour();
+void enableEnterAnyVehicle();
+void disableEnterAnyVehicle();
