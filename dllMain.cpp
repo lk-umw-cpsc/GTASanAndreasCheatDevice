@@ -86,7 +86,7 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, nullptr, &hoverCar, "Hover Car"),
 	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike"),
 	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo"),
-	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Veh Damage"),
+	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage"),
 	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle"),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car"),
@@ -229,7 +229,7 @@ void showMenu() {
 	for (int i = 0; i < numCheats; i++) {
 		selectedCheat = i == menuIndex;
 		if (selectedCheat) {
-			text += ">~p~";
+			text += "~p~";
 		}
 		text += cheats[i]->getMenuText() + MENU_NEW_LINE;
 		if (selectedCheat) {
