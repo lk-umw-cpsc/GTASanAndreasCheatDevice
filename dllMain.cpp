@@ -25,6 +25,8 @@ using namespace std;
 #define GAME_LOOP_FUNCTION_ADDRESS	0x005684A0
 
 #define MENU_NEW_LINE "~N~"
+#define MENU_WHITE_TEXT_TOKEN "~w~";
+#define MENU_PURPLE_TEXT_TOKEN "~p~";
 
 // 0x006CCCF0 0xC2, 0x08 - Disable plane explosions upon crashing
 
@@ -225,7 +227,7 @@ void unload() {
 }
 
 void showMenu() {
-	string text = "~w~";
+	string text = MENU_WHITE_TEXT_TOKEN;
 	bool selectedCheat;
 	for (int i = 0; i < numCheats; i++) {
 		if (i > 0) {
@@ -233,11 +235,11 @@ void showMenu() {
 		}
 		selectedCheat = i == menuIndex;
 		if (selectedCheat) {
-			text += "~p~";
+			text += MENU_PURPLE_TEXT_TOKEN;
 		}
 		text += cheats[i]->getMenuText();
 		if (selectedCheat) {
-			text += "~w~";
+			text += MENU_WHITE_TEXT_TOKEN;
 		}
 	}
 	displayMessage(text.c_str(), 0, 0, 0);
