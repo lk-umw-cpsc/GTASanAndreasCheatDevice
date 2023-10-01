@@ -360,14 +360,10 @@ void autoFlipCar() {
 BYTE originalFallOffBikeCall[5];
 void installFallOffBikeDetour() {
 	DWORD newJumpAddress;
-	DWORD old;
 	newJumpAddress = (DWORD)&fallOffBikeDetour - 0x4b4ac0 - 0x05;
 	BYTE detour[] = { 0xE9, 0, 0, 0, 0 }; //E9 for jmp
 	memcpy((LPVOID)(detour + 1), (LPVOID)&newJumpAddress, sizeof(newJumpAddress));
-	VirtualProtect((LPVOID)0x4b4ac0, sizeof(detour), PAGE_EXECUTE_READWRITE, &old);
-	memcpy((LPVOID)&originalFallOffBikeCall, (LPVOID)0x4b4ac0, sizeof(originalFallOffBikeCall));
-	memcpy((LPVOID)0x4b4ac0, (LPVOID)detour, sizeof(detour));
-	VirtualProtect((LPVOID)0x4b4ac0, sizeof(detour), old, &old);
+	overwriteInstructions((void*)0x4b4ac0, detour, sizeof(detour), originalFallOffBikeCall);
 }
 
 void fallOffBikeDetour() {
@@ -390,11 +386,7 @@ void fallOffBikeDetour() {
 }
 
 void uninstallFallOffBikeDetour() {
-	DWORD pHook;
-	DWORD old;
-	VirtualProtect((LPVOID)0x4b4ac0, sizeof(originalFallOffBikeCall), PAGE_EXECUTE_READWRITE, &old);
-	memcpy((LPVOID)0x4b4ac0, (LPVOID)&originalFallOffBikeCall, sizeof(originalFallOffBikeCall));
-	VirtualProtect((LPVOID)0x4b4ac0, sizeof(originalFallOffBikeCall), old, &old);
+	restoreInstructions((void*)0x4b4ac0, originalFallOffBikeCall, sizeof(originalFallOffBikeCall));
 }
 
 const DWORD infiniteAmmoNOPTargets[4] = {
@@ -406,22 +398,15 @@ const DWORD infiniteAmmoNOPTargets[4] = {
 DWORD originalAmmoDecrementCode[4][3] = { 0 };
 #define NUM_AMMO_DECREMENT_OP_CODES (sizeof(infiniteAmmoNOPTargets) / sizeof(DWORD))
 void enableInfiniteAmmo() {
-	DWORD old;
 	BYTE nops[WEAPON_AMMO_DECREMENT_SIZE] = { 0x90, 0x90, 0x90 };
 	for (int i = 0; i < NUM_AMMO_DECREMENT_OP_CODES; i++) {
-		VirtualProtect((LPVOID)(infiniteAmmoNOPTargets[i]), WEAPON_AMMO_DECREMENT_SIZE, PAGE_EXECUTE_READWRITE, &old);
-		memcpy((LPVOID)(&originalAmmoDecrementCode[i][0]), (LPVOID)(infiniteAmmoNOPTargets[i]), WEAPON_AMMO_DECREMENT_SIZE);
-		memcpy((LPVOID)(infiniteAmmoNOPTargets[i]), (LPVOID)nops, WEAPON_AMMO_DECREMENT_SIZE);
-		VirtualProtect((LPVOID)(infiniteAmmoNOPTargets[i]), WEAPON_AMMO_DECREMENT_SIZE, old, &old);
+		overwriteInstructions((void*)infiniteAmmoNOPTargets[i], nops, WEAPON_AMMO_DECREMENT_SIZE, originalAmmoDecrementCode[i]);
 	}
 }
 
 void disableInfiniteAmmo() {
-	DWORD old;
 	for (int i = 0; i < NUM_AMMO_DECREMENT_OP_CODES; i++) {
-		VirtualProtect((LPVOID)(infiniteAmmoNOPTargets[i]), WEAPON_AMMO_DECREMENT_SIZE, PAGE_EXECUTE_READWRITE, &old);
-		memcpy((LPVOID)(infiniteAmmoNOPTargets[i]), (LPVOID)(&originalAmmoDecrementCode[i][0]), WEAPON_AMMO_DECREMENT_SIZE);
-		VirtualProtect((LPVOID)infiniteAmmoNOPTargets[i], WEAPON_AMMO_DECREMENT_SIZE, old, &old);
+		restoreInstructions((void*)infiniteAmmoNOPTargets[i], originalAmmoDecrementCode[i], WEAPON_AMMO_DECREMENT_SIZE);
 	}
 }
 
@@ -491,18 +476,11 @@ void noVehicleDamageDetour() {
 BYTE originalCheckVehicleLockOpcodes[2];
 void enableEnterAnyVehicle() {
 	BYTE nops[2] = { 0xB0, 0x01 };
-	DWORD old;
-	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, PAGE_EXECUTE_READWRITE, &old);
-	memcpy((LPVOID)originalCheckVehicleLockOpcodes, (LPVOID)(VEHICLE_LOCK_CHECK_ADDRESS), VEHICLE_LOCK_CHECK_SIZE);
-	memcpy((LPVOID)(VEHICLE_LOCK_CHECK_ADDRESS), (LPVOID)nops, VEHICLE_LOCK_CHECK_SIZE);
-	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, old, &old);
+	overwriteInstructions((void*)VEHICLE_LOCK_CHECK_ADDRESS, nops, sizeof(nops), originalCheckVehicleLockOpcodes);
 }
 
 void disableEnterAnyVehicle() {
-	DWORD existingRights;
-	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, PAGE_EXECUTE_READWRITE, &existingRights);
-	memcpy((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, (LPVOID)originalCheckVehicleLockOpcodes, VEHICLE_LOCK_CHECK_SIZE);
-	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, existingRights, &existingRights);
+	restoreInstructions((void*)VEHICLE_LOCK_CHECK_ADDRESS, originalCheckVehicleLockOpcodes, sizeof(originalCheckVehicleLockOpcodes));
 }
 
 BYTE noPlaneExplosionInstructions[3] = { 0xC2, 0x08, 0x00 }; // ret 08
