@@ -16,6 +16,7 @@ using namespace std;
 	Player jump size (Moon jump)
 	Punt
 	Vehicle mass
+	lock car doors
 	Car speed
 	Crimes
 */
@@ -227,11 +228,14 @@ void showMenu() {
 	string text = "~w~";
 	bool selectedCheat;
 	for (int i = 0; i < numCheats; i++) {
+		if (i > 0) {
+			text += MENU_NEW_LINE;
+		}
 		selectedCheat = i == menuIndex;
 		if (selectedCheat) {
 			text += "~p~";
 		}
-		text += cheats[i]->getMenuText() + MENU_NEW_LINE;
+		text += cheats[i]->getMenuText();
 		if (selectedCheat) {
 			text += "~w~";
 		}
