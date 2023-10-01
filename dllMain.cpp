@@ -21,6 +21,9 @@ using namespace std;
 	Crimes
 */
 
+// derived from 5-byte JMP far opcode, -1 because of push esi created by Visual Studio
+#define FAR_JUMP_OFFSET (-4)
+
 #define GAME_LOOP_FUNCTION_CALL		0x0053C096
 #define GAME_LOOP_FUNCTION_ADDRESS	0x005684A0
 
@@ -114,6 +117,7 @@ void init() {
 	DWORD oldPolicy;
 	unsigned int hookOffset = (unsigned int)&detour - GAME_LOOP_FUNCTION_CALL - 4;
 	overwriteInstructions((void*)GAME_LOOP_FUNCTION_CALL, &hookOffset, 4, &originalFunctionCall);
+	displayMessage("~p~Lauren's Cheat Device~w~ loaded~N~Hit LB + dpad for menu", 0, 0, 0);
 }
 
 void detour()
@@ -128,6 +132,8 @@ WORD buttonsHeld;
 WORD buttonsPressed;
 WORD buttonsReleased;
 WORD previousButtonState;
+unsigned int vehicleBALastFrame = NULL;
+void(*repairVehicle)();
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
 		exit();
@@ -136,13 +142,19 @@ void hack() {
 	unsigned int vehicleBaseAddress = *pPlayerVehicleBaseAddress;
 	if (vehicleBaseAddress) {
 		hookVehicle(vehicleBaseAddress, &vehicle);
+		if (vehicleBaseAddress != vehicleBALastFrame) {
+			// in a new car
+			*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
+			unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
+			unsigned int pRepairVehicle = (*vtable)[50];
+			repairVehicle = (void(*)())(pRepairVehicle);
+			__asm { mov ecx, [vehicleBaseAddress] }
+			repairVehicle();
+		}
 	} else {
 		vehicle.baseAddress = NULL;
 	}
 	if (GetAsyncKeyState(VK_NUMPAD6) & KEY_PRESSED_MASK && vehicleBaseAddress) {
-		unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
-		unsigned int pRepairVehicle = (*vtable)[50];
-		void(*repairVehicle)() = (void(*)())(pRepairVehicle);
 		__asm { mov ecx, [vehicleBaseAddress] }
 		repairVehicle();
 	}
@@ -210,6 +222,7 @@ void hack() {
 			showMenu();
 		}
 	}
+	vehicleBALastFrame = vehicleBaseAddress;
 }
 
 void exit() {
@@ -217,6 +230,7 @@ void exit() {
 		cheats[i]->setEnabled(false);
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &originalFunctionCall, 4);
+	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
 }
 
@@ -471,7 +485,7 @@ void noVehicleDamageDetour() {
 		pop ebx
 		jne notpcar
 		ret 0x18
-		notpcar:
+	notpcar:
 		push -1
 		push 0x00847FD8
 		push 0x6a7657
@@ -479,14 +493,42 @@ void noVehicleDamageDetour() {
 	}
 }
 
-BYTE originalCheckVehicleLockOpcodes[2];
+BYTE originalCheckVehicleLockOpcodes[5];
+//BYTE originalCheckVehicleLockOpcodes[2];
 void enableEnterAnyVehicle() {
-	BYTE nops[2] = { 0xB0, 0x01 };
-	overwriteInstructions((void*)VEHICLE_LOCK_CHECK_ADDRESS, nops, sizeof(nops), originalCheckVehicleLockOpcodes);
+	//BYTE nops[2] = { 0xB0, 0x01 };
+	BYTE jump[5] = { 0xE9, 0x0, 0x0, 0x0, 0x0 };
+	DWORD jumpOffset = (DWORD)&carLockDetour - VEHICLE_LOCK_CHECK_ADDRESS + FAR_JUMP_OFFSET;
+	memcpy(&jump[1], &jumpOffset, sizeof(DWORD));
+	overwriteInstructions((void*)VEHICLE_LOCK_CHECK_ADDRESS, jump, sizeof(jump), originalCheckVehicleLockOpcodes);
+	//overwriteInstructions((void*)VEHICLE_LOCK_CHECK_ADDRESS, nops, sizeof(nops), originalCheckVehicleLockOpcodes);
 }
 
 void disableEnterAnyVehicle() {
 	restoreInstructions((void*)VEHICLE_LOCK_CHECK_ADDRESS, originalCheckVehicleLockOpcodes, sizeof(originalCheckVehicleLockOpcodes));
+}
+
+void carLockDetour() {
+	// If the driver of the car is the player, DO check the lock. Otherwise, bypass
+	__asm {
+		push edx
+		push ecx
+		add ecx, VEHICLE_PASSENGER_OFFSET
+		mov ecx, [ecx]
+		mov edx, PLAYER_PEDESTRIAN_STRUCT_POINTER
+		mov edx, [edx]
+		cmp ecx, edx
+		pop ecx
+		pop edx
+		je driver_is_player
+		mov al, 1
+		pop esi
+		ret 4
+	driver_is_player:
+		xor al, al
+		pop esi
+		ret 4
+	}
 }
 
 BYTE noPlaneExplosionInstructions[3] = { 0xC2, 0x08, 0x00 }; // ret 08

@@ -35,6 +35,7 @@ struct Vehicle {
 	unsigned int* pTouch;
 	float* health;
 	unsigned int* color;
+	unsigned int* lock;
 };
 
 struct WantedLevel {
@@ -74,6 +75,9 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_HEALTH_OFFSET						0x4C0
 #define VEHICLE_DRIVER_POINTER_OFFSET				0x460
 #define VEHICLE_COLOR_OFFSET						0x434
+#define VEHICLE_LOCK_OFFSET							0x4F8
+#define VEHICLE_LOCK_STATE_LOCKED					2
+#define VEHICLE_PASSENGER_OFFSET					0x460
 
 #define WANTED_LEVEL_STRUCT_POINTER					0x00B7CD9C
 #define WANTED_LEVEL_HEAT_OFFSET					0x0

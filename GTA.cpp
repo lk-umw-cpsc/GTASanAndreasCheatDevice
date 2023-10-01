@@ -41,6 +41,7 @@ void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->pTouch = (unsigned int*)(baseAddress + TOUCH_POINTER_OFFSET);
 	vehicleOut->health = (float*)(baseAddress + VEHICLE_HEALTH_OFFSET);
 	vehicleOut->color = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_COLOR_OFFSET);
+	vehicleOut->lock = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_LOCK_OFFSET);
 }
 
 void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut) {

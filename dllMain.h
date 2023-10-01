@@ -24,6 +24,7 @@ void uninstallNoCarDamageDetour();
 void noVehicleDamageDetour();
 void enableEnterAnyVehicle();
 void disableEnterAnyVehicle();
+void carLockDetour();
 void enableNoPlaneExplosion();
 void disableNoPlaneExplosion();
 void rhinoCar();
