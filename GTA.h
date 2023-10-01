@@ -6,6 +6,7 @@ struct Vector3d {
 
 struct Pedestrian {
 	unsigned int baseAddress;
+	unsigned int objectClass;
 	unsigned int* pMultiVectorBaseAddress;
 	unsigned int multiVectorBaseAddress;
 	Vector3d* left;
@@ -14,6 +15,7 @@ struct Pedestrian {
 	Vector3d* position;
 	Vector3d* velocity;
 	Vector3d* rotationalVelocity;
+	unsigned int* pTouch;
 	float* health;
 	float* armor;
 	float* oxygen;
@@ -21,6 +23,7 @@ struct Pedestrian {
 
 struct Vehicle {
 	unsigned int baseAddress;
+	unsigned int objectClass;
 	unsigned int* pMultiVectorBaseAddress;
 	unsigned int multiVectorBaseAddress;
 	Vector3d* left;
@@ -29,7 +32,9 @@ struct Vehicle {
 	Vector3d* position;
 	Vector3d* velocity;
 	Vector3d* rotationalVelocity;
+	unsigned int* pTouch;
 	float* health;
+	unsigned int* color;
 };
 
 struct WantedLevel {
@@ -51,7 +56,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define MULTI_VECTOR_STRUCT_POINTER_OFFSET			0x14
 #define ID_OFFSET									0x22
-#define TOUCH_POINTER								0xDC
+#define TOUCH_POINTER_OFFSET						0xDC
 // Found within above struct
 #define LEFT_VECTOR_STRUCT_OFFSET					0x0
 #define FORWARD_VECTOR_STRUCT_OFFSET				0x10
@@ -68,6 +73,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define VEHICLE_HEALTH_OFFSET						0x4C0
 #define VEHICLE_DRIVER_POINTER_OFFSET				0x460
+#define VEHICLE_COLOR_OFFSET						0x434
 
 #define WANTED_LEVEL_STRUCT_POINTER					0x00B7CD9C
 #define WANTED_LEVEL_HEAT_OFFSET					0x0
@@ -81,6 +87,14 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define VEHICLE_LOCK_CHECK_ADDRESS					0x6D1E59
 #define VEHICLE_LOCK_CHECK_SIZE						2
+
+#define CLASS_PLAYER								0x0086d168
+
+#define CLASS_CAR									0x00871120
+#define CLASS_MOTORCYCLE							0x00871360
+#define CLASS_PLANE									0x00871948
+#define CLASS_HELICOPTER							0x00871680
+#define CLASS_BICYCLE								0x00871528
 
 const unsigned int *const pPlayerPedBaseAddress = 		(const unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
 const unsigned int *const pPlayerVehicleBaseAddress =	(const unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;

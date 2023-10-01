@@ -8,6 +8,7 @@
 #include "Cheat.h"
 #include "dllMain.h"
 
+using namespace std;
 /*
 	Ideas:
 	Player movement speed
@@ -16,15 +17,21 @@
 	Punt
 	Vehicle mass
 	Car speed
-	Unlock cars
 	Crimes
-	Menu
 */
 
 #define GAME_LOOP_FUNCTION_CALL		0x0053C096
 #define GAME_LOOP_FUNCTION_ADDRESS	0x005684A0
 
-#define DRAW_STRING_FUNCTION_ADDRESS (EXE_OFFSET + 0x29DB70)
+#define MENU_NEW_LINE "~N~"
+
+// 0x006CCCF0 0xC2, 0x08 - Disable plane explosions upon crashing
+
+const void (*fireRocket)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int) = (const void(*)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int))0x737C80;
+
+#define DISPLAY_MESSAGE_FUNCTION_ADDRESS (0x00588BE0)
+const void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int) = (const void(*)(const char*, unsigned int, unsigned int, unsigned int))DISPLAY_MESSAGE_FUNCTION_ADDRESS;
+bool* menuShowing = reinterpret_cast<bool*>(0x00BAA474);
 
 #define KEY_PRESSED_MASK 0x1
 #define KEY_DOWN_MASK 0x8000
@@ -35,6 +42,7 @@
 const void(*gameLoop)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
 
 HWND hwnd;
+HINSTANCE hDLL;
 
 // Function called by Windows, including on DLL "entry point" once it loads within our target process
 BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOID lpvReserved)
@@ -42,115 +50,26 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
 		// Call the init function once the DLL is attached to a process
+		hDLL = hinstDLL;
 		init();
 	}
 	return TRUE;
 }
 
-// Non-working D3D hook
-// void* d3d9DeviceVTable[119];
-//void fetchD3D9VTable() {
-//	IDirect3D9* d3dSys = Direct3DCreate9(D3D_SDK_VERSION);
-//	IDirect3DDevice9* dummyDevice = nullptr;
-//
-//	D3DPRESENT_PARAMETERS params = {};
-//	params.Windowed = true;
-//	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
-//	params.hDeviceWindow = hwnd;
-//
-//	//HRESULT dummyDevice = 
-//	d3dSys->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
-//	
-//	//memcpy(d3d9DeviceVTable, *reinterpret_cast<void***>(dummyDevice), sizeof(d3d9DeviceVTable));
-//	dummyDevice->Release();
-//	d3dSys->Release();
-//}
-//
-//const char* REL_JMP = "\xE9";
-//const char* NOP = "\x90";
-//// 1 byte instruction +  4 bytes address
-//const unsigned int SIZE_OF_REL_JMP = 5;
-//
-//// adapted from https://guidedhacking.com/threads/simple-x86-c-trampoline-hook.14188/
-//// hookedFn: The function that's about to the hooked
-//// hookFn: The function that will be executed before `hookedFn` by causing `hookFn` to take a detour
-//void* WINAPI hookFn(char* hookedFn, char* hookFn, int copyBytesSize, unsigned char* backupBytes, std::string descr)
-//{
-//
-//	if (copyBytesSize < 5)
-//	{
-//		// the function prologue of the hooked function
-//		// should be of size 5 (or larger)
-//		return nullptr;
-//	}
-//
-//	//
-//	// 1. Backup the original function prologue
-//	//
-//	if (!ReadProcessMemory(GetCurrentProcess(), hookedFn, backupBytes, copyBytesSize, 0))
-//	{
-//		MessageBox(0, std::string("[hookFn] Failed to Backup Original Bytes for " + descr).c_str(), ":(", 0);
-//		return nullptr;
-//	}
-//
-//	//
-//	// 2. Setup the trampoline
-//	// --> Cause `hookedFn` to return to `hookFn` without causing an infinite loop
-//	// Otherwise calling `hookedFn` directly again would then call `hookFn` again, and so on :)
-//	//
-//	// allocate executable memory for the trampoline
-//	// the size is (amount of bytes copied from the original function) + (size of a relative jump + address)
-//
-//	char* trampoline = (char*)VirtualAlloc(0, copyBytesSize + SIZE_OF_REL_JMP, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-//
-//	// steal the first `copyBytesSize` bytes from the original function
-//	// these will be used to make the trampoline work
-//	// --> jump back to `hookedFn` without executing `hookFn` again
-//	memcpy(trampoline, hookedFn, copyBytesSize);
-//	// append the relative JMP instruction after the stolen instructions
-//	memcpy(trampoline + copyBytesSize, REL_JMP, sizeof(REL_JMP));
-//
-//	// calculate the offset between the hooked function and the trampoline
-//	// --> distance between the trampoline and the original function `hookedFn`
-//	// this will land directly *after* the inserted JMP instruction, hence subtracting 5
-//	int hookedFnTrampolineOffset = hookedFn - trampoline - SIZE_OF_REL_JMP;
-//	memcpy(trampoline + copyBytesSize + 1, &hookedFnTrampolineOffset, sizeof(hookedFnTrampolineOffset));
-//
-//	//
-//	// 3. Detour the original function `hookedFn`
-//	// --> cause `hookedFn` to execute `hookFn` first
-//	// remap the first few bytes of the original function as RXW
-//	DWORD oldProtect;
-//	if (!VirtualProtect(hookedFn, copyBytesSize, PAGE_EXECUTE_READWRITE, &oldProtect))
-//	{
-//		MessageBox(0, std::string("[hookFn] Failed to set RXW for " + descr).c_str(), ":(", 0);
-//		return nullptr;
-//	}
-//
-//	// best variable name ever
-//	// calculate the size of the relative jump between the start of `hookedFn` and the start of `hookFn`.
-//	int hookedFnHookFnOffset = hookFn - hookedFn - SIZE_OF_REL_JMP;
-//
-//	// Take a relative jump to `hookFn` at the beginning
-//	// of course, `hookFn` has to expect the same parameter types and values
-//	memcpy(hookedFn, REL_JMP, sizeof(REL_JMP));
-//	memcpy(hookedFn + 1, &hookedFnHookFnOffset, sizeof(hookedFnHookFnOffset));
-//
-//	// restore the previous protection values
-//	if (!VirtualProtect(hookedFn, copyBytesSize, oldProtect, &oldProtect))
-//	{
-//		MessageBox(0, std::string("[hookFn] Failed to Restore Protection for " + descr).c_str(), ":(", 0);
-//	}
-//
-//	return trampoline;
-//}
-//
-//void (*endSceneTrampoline)(LPDIRECT3DDEVICE9);
-//void endSceneHook(LPDIRECT3DDEVICE9 pDevice) {
-//	D3DRECT r = { 10, 10, 200, 200 };
-//	pDevice->Clear(1, &r, D3DCLEAR_TARGET, D3DCOLOR_ARGB(255, 255, 0, 0), 0, 0);
-//	endSceneTrampoline(pDevice);
-//}
+void overwriteInstructions(void* target, void* newInstructions, const unsigned int numBytes, void* oldInstructionsOut) {
+	DWORD oldProtectionFlags;
+	VirtualProtect(target, numBytes, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
+	memcpy(oldInstructionsOut, target, numBytes);
+	memcpy(target, newInstructions, numBytes);
+	VirtualProtect(target, numBytes, oldProtectionFlags, &oldProtectionFlags);
+}
+
+void restoreInstructions(void* target, void* oldInstructions, const unsigned int numBytes) {
+	DWORD oldProtectionFlags;
+	VirtualProtect(target, numBytes, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
+	memcpy(target, oldInstructions, numBytes);
+	VirtualProtect(target, numBytes, oldProtectionFlags, &oldProtectionFlags);
+}
 
 void (*spawnCar)(unsigned short) = (void(*)(unsigned short))0x43A0B0;
 
@@ -160,27 +79,24 @@ Vehicle vehicle;
 
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
-	new Cheat(nullptr, nullptr, &noWantedLevel),
-	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth),
-	new Cheat(nullptr, nullptr, &infiniteCarHealth),
-	new Cheat(nullptr, nullptr, &autoFlipCar),
-	new Cheat(nullptr, nullptr, &hoverCar),
-	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr),
-	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr),
-	new Cheat(&installNoCarDamageDetour, nullptr, nullptr),
-	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr),
+	new Cheat(nullptr, nullptr, &noWantedLevel, "No Wanted Level"),
+	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health"),
+	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle"),
+	new Cheat(nullptr, nullptr, &autoFlipCar, "Auto Flip Car"),
+	new Cheat(nullptr, nullptr, &hoverCar, "Hover Car"),
+	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike"),
+	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo"),
+	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Veh Damage"),
+	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle"),
+	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
+	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car"),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
+int menuIndex = 0;
 
 
 unsigned int originalFunctionCall;
 void init() {
-	//hwnd = FindWindow(NULL, "GTA: San Andreas");
-
-	//fetchD3D9VTable();
-	//void* endSceneAddress = d3d9DeviceVTable[42];
-	//unsigned char endSceneBytes[7];
-	//endSceneTrampoline = (void(*)(LPDIRECT3DDEVICE9))hookFn((char*)endSceneAddress, (char*)endSceneHook, 7, endSceneBytes, (char*)"");
 	hookWantedLevel(*pWantedLevelBaseAddress, &wantedLevel);
 	hookPedestrian(*pPlayerPedBaseAddress, &player);
 	cheats[0]->setEnabled(true);
@@ -194,11 +110,7 @@ void init() {
 
 	DWORD oldPolicy;
 	unsigned int hookOffset = (unsigned int)&detour - GAME_LOOP_FUNCTION_CALL - 4;
-
-	VirtualProtect((LPVOID)GAME_LOOP_FUNCTION_CALL, 4, PAGE_EXECUTE_READWRITE, &oldPolicy);
-	originalFunctionCall = *(unsigned int*)GAME_LOOP_FUNCTION_CALL;
-	*(unsigned int*)GAME_LOOP_FUNCTION_CALL = hookOffset;
-	VirtualProtect((LPVOID)GAME_LOOP_FUNCTION_CALL, 4, oldPolicy, &oldPolicy);
+	overwriteInstructions((void*)GAME_LOOP_FUNCTION_CALL, &hookOffset, 4, &originalFunctionCall);
 }
 
 void detour()
@@ -214,14 +126,33 @@ WORD buttonsPressed;
 WORD buttonsReleased;
 WORD previousButtonState;
 void hack() {
+	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
+		exit();
+		return;
+	}
 	unsigned int vehicleBaseAddress = *pPlayerVehicleBaseAddress;
 	if (vehicleBaseAddress) {
 		hookVehicle(vehicleBaseAddress, &vehicle);
 	} else {
 		vehicle.baseAddress = NULL;
 	}
+	if (GetAsyncKeyState(VK_NUMPAD6) & KEY_PRESSED_MASK && vehicleBaseAddress) {
+		unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
+		unsigned int pRepairVehicle = (*vtable)[50];
+		void(*repairVehicle)() = (void(*)())(pRepairVehicle);
+		__asm { mov ecx, [vehicleBaseAddress] }
+		repairVehicle();
+	}
+	if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK && vehicleBaseAddress) {
+		unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
+		unsigned int pBlowUpVehicle = (*vtable)[41];
+		void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
+		__asm { mov ecx, [vehicleBaseAddress] }
+		blowUpVehicle(player.baseAddress, 0);
+	}
 	if (GetAsyncKeyState(VK_NUMPAD3) & KEY_PRESSED_MASK) {
 		cheats[4]->toggle();
+		displayMessage(cheats[4]->getMenuText().c_str(), 0, 0, 0);
 	}
 	if (GetAsyncKeyState(VK_NUMPAD4) & KEY_PRESSED_MASK) {
 		cheats[5]->toggle();
@@ -237,6 +168,13 @@ void hack() {
 	if (GetAsyncKeyState(VK_NUMPAD0) & KEY_PRESSED_MASK) {
 		spawnCar(494);
 	}
+	if (GetAsyncKeyState(VK_NUMPAD1) & KEY_PRESSED_MASK) {
+		displayMessage((char*)"Hello, world!", 0, 0, 0);
+	}
+	if (GetAsyncKeyState(VK_NUMPAD2) & KEY_PRESSED_MASK) {
+		// 741a53
+		fireRocket(player.baseAddress, 19, player.position->x + player.forward->x * 5, player.position->y + player.forward->y * 5, player.position->z + player.forward->z * 5, 0, 0, 0);
+	}
 	memset(&gamepadState, 0, sizeof(XINPUT_STATE));
 	usingGamepad = XInputGetState(0, &gamepadState) == ERROR_SUCCESS;
 	buttonsHeld = gamepadState.Gamepad.wButtons;
@@ -251,10 +189,54 @@ void hack() {
 		}
 	}
 	previousButtonState = gamepadState.Gamepad.wButtons;
+	if (buttonsHeld & XINPUT_GAMEPAD_LEFT_SHOULDER) {
+		if (*menuShowing) {
+			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
+				menuIndex = (menuIndex + numCheats - 1) % numCheats;
+				showMenu();
+			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
+				menuIndex = (menuIndex + 1) % numCheats;
+				showMenu();
+			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
+				cheats[menuIndex]->toggle();
+				showMenu();
+			}
+		}
+		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
+			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
+			showMenu();
+		}
+	}
 }
 
 void exit() {
+	for (int i = 0; i < numCheats; i++) {
+		cheats[i]->setEnabled(false);
+	}
+	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &originalFunctionCall, 4);
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
+}
 
+void unload() {
+	HMODULE h;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, "SADevice.dll", &h);
+	FreeLibraryAndExitThread(hDLL, 0);
+}
+
+void showMenu() {
+	string text = "~w~";
+	bool selectedCheat;
+	for (int i = 0; i < numCheats; i++) {
+		selectedCheat = i == menuIndex;
+		if (selectedCheat) {
+			text += ">~p~";
+		}
+		text += cheats[i]->getMenuText() + MENU_NEW_LINE;
+		if (selectedCheat) {
+			text += "~w~";
+		}
+	}
+	displayMessage(text.c_str(), 0, 0, 0);
 }
 
 void noWantedLevel() {
@@ -444,16 +426,25 @@ void disableInfiniteAmmo() {
 }
 
 BYTE originalCarDamageCall[5];
+BYTE disablePlaneBlowUpInstructions[2] = { 0xeb, 0x0b };
+BYTE originalPlaneBlowUpInstructions[2];
 void installNoCarDamageDetour() {
+	// 0x6cca2e eb 0b
 	DWORD jumpDestination;
 	DWORD old;
-	jumpDestination = (DWORD)&noCarDamageDetour - 0x6C24B0 - 0x04;
+	jumpDestination = (DWORD)&noVehicleDamageDetour - 0x6A7650 - 0x04;
+	//jumpDestination = (DWORD)&noVehicleDamageDetour - 0x6C24B0 - 0x04;
 	BYTE detour[] = { 0xE9, 0, 0, 0, 0 }; //E9 for jmp
 	memcpy((LPVOID)(detour + 1), (LPVOID)&jumpDestination, sizeof(jumpDestination));
-	VirtualProtect((LPVOID)0x6C24B0, sizeof(detour), PAGE_EXECUTE_READWRITE, &old);
-	memcpy((LPVOID)&originalCarDamageCall, (LPVOID)0x6C24B0, sizeof(originalCarDamageCall));
-	memcpy((LPVOID)0x6C24B0, (LPVOID)detour, sizeof(detour));
-	VirtualProtect((LPVOID)0x6C24B0, sizeof(detour), old, &old);
+	overwriteInstructions((void*)0x6A7650, detour, sizeof(detour), &originalCarDamageCall);
+	overwriteInstructions((void*)0x6cca2e, disablePlaneBlowUpInstructions, sizeof(disablePlaneBlowUpInstructions), &originalPlaneBlowUpInstructions);
+	//overwriteInstructions((void*)0x6C24B0, detour, sizeof(detour), &originalCarDamageCall);
+}
+
+void uninstallNoCarDamageDetour() {
+	restoreInstructions((void*)0x6A7650, &originalCarDamageCall, sizeof(originalCarDamageCall));
+	restoreInstructions((void*)0x6cca2e, &originalPlaneBlowUpInstructions, sizeof(originalPlaneBlowUpInstructions));
+	//restoreInstructions((void*)0x6C24B0, &originalCarDamageCall, sizeof(originalCarDamageCall));
 }
 
 void noCarDamageDetour() {
@@ -466,12 +457,33 @@ void noCarDamageDetour() {
 		cmp ecx, ebx
 		pop ebx
 		pop ecx
-		jne notpcar
-		ret 16
-		notpcar:
+		jne notplayercar
+		ret
+		notplayercar:
 		push ebp
 		mov ebp, [esp + 8]
 		push 0x6C24B5
+		ret
+	}
+}
+
+void noVehicleDamageDetour() {
+	// 0x6a7650
+	// 6A FF 68 D8 7F 84 00
+	// push -1
+	// push 0x00847FD8
+	__asm {
+		push ebx
+		mov ebx, 0x00BA18FC
+		mov ebx, [ebx]
+		cmp ecx, ebx
+		pop ebx
+		jne notpcar
+		ret 0x18
+		notpcar:
+		push -1
+		push 0x00847FD8
+		push 0x6a7657
 		ret
 	}
 }
@@ -491,4 +503,41 @@ void disableEnterAnyVehicle() {
 	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, PAGE_EXECUTE_READWRITE, &existingRights);
 	memcpy((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, (LPVOID)originalCheckVehicleLockOpcodes, VEHICLE_LOCK_CHECK_SIZE);
 	VirtualProtect((LPVOID)VEHICLE_LOCK_CHECK_ADDRESS, VEHICLE_LOCK_CHECK_SIZE, existingRights, &existingRights);
+}
+
+BYTE noPlaneExplosionInstructions[3] = { 0xC2, 0x08, 0x00 }; // ret 08
+BYTE originalPlaneExplosionInstructions[3];
+BYTE noPlaneDamageOnCollisionInstructions[2] = { 0xEB, 0x0F };
+BYTE originalPlaneDamageOnCollisionInstructions[2];
+void enableNoPlaneExplosion() {
+	//overwriteInstructions((void*)0x006CCCF0, noPlaneExplosionInstructions, sizeof(noPlaneExplosionInstructions), originalPlaneExplosionInstructions);
+	overwriteInstructions((void*)0x006B1F30, noPlaneDamageOnCollisionInstructions, sizeof(noPlaneDamageOnCollisionInstructions), originalPlaneDamageOnCollisionInstructions);
+}
+
+void disableNoPlaneExplosion() {
+	//restoreInstructions((void*)0x006CCCF0, originalPlaneExplosionInstructions, sizeof(originalPlaneExplosionInstructions));
+	restoreInstructions((void*)0x006B1F30, originalPlaneDamageOnCollisionInstructions, sizeof(originalPlaneDamageOnCollisionInstructions));
+}
+
+void rhinoCar() {
+	unsigned int vehicleBaseAddress = vehicle.baseAddress;
+	if (vehicleBaseAddress) {
+		unsigned int touchedObjectBaseAddress = *vehicle.pTouch;
+		if (touchedObjectBaseAddress) {
+			unsigned int* pTouchedObjectClass = reinterpret_cast<unsigned int*>(touchedObjectBaseAddress);
+			unsigned int cls = *pTouchedObjectClass;
+			switch (cls) {
+			case CLASS_CAR:
+			case CLASS_MOTORCYCLE:
+			case CLASS_PLANE:
+			case CLASS_HELICOPTER:
+				unsigned int* vtable = reinterpret_cast<unsigned int*>(cls);
+				unsigned int pBlowUpVehicle = vtable[41];
+				void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
+				__asm { mov ecx, [touchedObjectBaseAddress] }
+				blowUpVehicle(player.baseAddress, 0);
+				break;
+			}
+		}
+	}
 }

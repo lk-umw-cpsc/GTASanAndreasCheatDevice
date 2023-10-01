@@ -15,7 +15,7 @@ void hookPedestrian(unsigned int baseAddress, Pedestrian* pedOut) {
 
 	pedOut->velocity =				(Vector3d*)(baseAddress + VELOCITY_VECTOR_STRUCT_OFFSET);
 	pedOut->rotationalVelocity =	(Vector3d*)(baseAddress + ROTATIONAL_VELOCITY_VECTOR_STRUCT_OFFSET);
-
+	pedOut->pTouch = (unsigned int*)(baseAddress + TOUCH_POINTER_OFFSET);
 	pedOut->health = (float*)(baseAddress + PEDESTRIAN_HEALTH_OFFSET);
 	pedOut->armor = (float*)(baseAddress + PEDESTRIAN_ARMOR_OFFSET);
 	pedOut->oxygen = (float*)(baseAddress + PEDESTRIAN_OXYGEN_OFFSET);
@@ -38,8 +38,9 @@ void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 
 	vehicleOut->velocity = (Vector3d*)(baseAddress + VELOCITY_VECTOR_STRUCT_OFFSET);
 	vehicleOut->rotationalVelocity = (Vector3d*)(baseAddress + ROTATIONAL_VELOCITY_VECTOR_STRUCT_OFFSET);
-
+	vehicleOut->pTouch = (unsigned int*)(baseAddress + TOUCH_POINTER_OFFSET);
 	vehicleOut->health = (float*)(baseAddress + VEHICLE_HEALTH_OFFSET);
+	vehicleOut->color = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_COLOR_OFFSET);
 }
 
 void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut) {

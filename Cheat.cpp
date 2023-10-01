@@ -1,10 +1,12 @@
 #include "Cheat.h"
+#include <string>
 
-Cheat::Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)()) {
+Cheat::Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)(), string name) {
 	enabled = false;
 	this->onEnable = onEnable;
 	this->onDisable = onDisable;
 	this->onFrame = onFrame;
+	this->name = name;
 }
 
 void Cheat::setEnabled(bool enabled) {
@@ -30,4 +32,15 @@ void Cheat::toggle() {
 	} else if (!enabled && onDisable) {
 		onDisable();
 	}
+}
+
+string Cheat::getMenuText() {
+	string onOff;
+	if (enabled) {
+		onOff = " ON";
+	}
+	else {
+		onOff = " OFF";
+	}
+	return name + onOff;
 }
