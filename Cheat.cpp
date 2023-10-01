@@ -1,12 +1,15 @@
 #include "Cheat.h"
 #include <string>
 
-Cheat::Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)(), string name) {
+Cheat::Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)(), string name, bool enabledByDefault) {
 	enabled = false;
 	this->onEnable = onEnable;
 	this->onDisable = onDisable;
 	this->onFrame = onFrame;
 	this->name = name;
+	if (enabledByDefault) {
+		this->setEnabled(true);
+	}
 }
 
 void Cheat::setEnabled(bool enabled) {

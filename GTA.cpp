@@ -31,6 +31,7 @@ void hookPedestrianMultiVector(unsigned int baseAddress, Pedestrian* pedOut) {
 
 void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->baseAddress = baseAddress;
+	vehicleOut->objectClass = *reinterpret_cast<unsigned int*>(baseAddress);
 	vehicleOut->pMultiVectorBaseAddress = (unsigned int*)(baseAddress + MULTI_VECTOR_STRUCT_POINTER_OFFSET);
 
 	unsigned int multiVectorBaseAddress = *vehicleOut->pMultiVectorBaseAddress;
@@ -42,6 +43,8 @@ void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->health = (float*)(baseAddress + VEHICLE_HEALTH_OFFSET);
 	vehicleOut->color = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_COLOR_OFFSET);
 	vehicleOut->lock = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_LOCK_OFFSET);
+	vehicleOut->id = reinterpret_cast<unsigned short*>(baseAddress + VEHICLE_ID_OFFSET);
+	vehicleOut->tireRotation = reinterpret_cast<float*>(baseAddress + VEHICLE_TIRE_ROTATION_OFFSET);
 }
 
 void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut) {

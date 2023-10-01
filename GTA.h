@@ -4,6 +4,10 @@ struct Vector3d {
 	float x, y, z;
 };
 
+struct VehicleName {
+	char str[14];
+};
+
 struct Pedestrian {
 	unsigned int baseAddress;
 	unsigned int objectClass;
@@ -32,10 +36,12 @@ struct Vehicle {
 	Vector3d* position;
 	Vector3d* velocity;
 	Vector3d* rotationalVelocity;
+	unsigned short* id;
 	unsigned int* pTouch;
 	float* health;
 	unsigned int* color;
 	unsigned int* lock;
+	float* tireRotation;
 };
 
 struct WantedLevel {
@@ -72,12 +78,16 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define PEDESTRIAN_ARMOR_OFFSET						0x548
 #define PEDESTRIAN_OXYGEN_OFFSET					0x550
 
+#define VEHICLE_ID_OFFSET							0x22
 #define VEHICLE_HEALTH_OFFSET						0x4C0
 #define VEHICLE_DRIVER_POINTER_OFFSET				0x460
 #define VEHICLE_COLOR_OFFSET						0x434
 #define VEHICLE_LOCK_OFFSET							0x4F8
 #define VEHICLE_LOCK_STATE_LOCKED					2
+#define VEHICLE_LOCK_STATE_UNLOCKED					1
+
 #define VEHICLE_PASSENGER_OFFSET					0x460
+#define VEHICLE_TIRE_ROTATION_OFFSET				0x898
 
 #define WANTED_LEVEL_STRUCT_POINTER					0x00B7CD9C
 #define WANTED_LEVEL_HEAT_OFFSET					0x0

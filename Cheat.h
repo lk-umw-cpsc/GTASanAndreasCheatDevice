@@ -7,7 +7,7 @@ private:
 	bool enabled;
 	string name;
 public:
-	Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)(), string name);
+	Cheat(void (*onEnable)(), void (*onDisable)(), void (*onFrame)(), string name, bool enabledByDefault);
 	void (*onEnable)();
 	void (*onFrame)();
 	void (*onDisable)();

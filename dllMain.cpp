@@ -31,6 +31,10 @@ using namespace std;
 #define MENU_WHITE_TEXT_TOKEN "~w~";
 #define MENU_PURPLE_TEXT_TOKEN "~p~";
 
+#define ENTITY_INFO_TABLE			0xA9B0C8
+
+unsigned int* entityInfo = reinterpret_cast<unsigned int*>(ENTITY_INFO_TABLE);
+
 // 0x006CCCF0 0xC2, 0x08 - Disable plane explosions upon crashing
 
 const void (*fireRocket)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int) = (const void(*)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int))0x737C80;
@@ -85,17 +89,17 @@ Vehicle vehicle;
 
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
-	new Cheat(nullptr, nullptr, &noWantedLevel, "No Wanted Level"),
-	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health"),
-	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle"),
-	new Cheat(nullptr, nullptr, &autoFlipCar, "Auto Flip Car"),
-	new Cheat(nullptr, nullptr, &hoverCar, "Hover Car"),
-	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike"),
-	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo"),
-	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage"),
-	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle"),
+	new Cheat(nullptr, &disableHoverCar, &hoverCar, "Hover Car", false),
+	new Cheat(nullptr, nullptr, &noWantedLevel, "No Wanted Level", true),
+	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health", true),
+	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
+	new Cheat(nullptr, nullptr, &autoFlipCar, "Auto Flip Car", true),
+	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike", true),
+	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo", true),
+	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage", true),
+	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle", true),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
-	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car"),
+	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
 int menuIndex = 0;
@@ -105,19 +109,11 @@ unsigned int originalFunctionCall;
 void init() {
 	hookWantedLevel(*pWantedLevelBaseAddress, &wantedLevel);
 	hookPedestrian(*pPlayerPedBaseAddress, &player);
-	cheats[0]->setEnabled(true);
-	cheats[1]->setEnabled(true);
-	cheats[2]->setEnabled(true);
-	cheats[3]->setEnabled(true);
-	cheats[5]->setEnabled(true);
-	cheats[6]->setEnabled(true);
-	cheats[7]->setEnabled(true);
-	cheats[8]->setEnabled(true);
 
 	DWORD oldPolicy;
 	unsigned int hookOffset = (unsigned int)&detour - GAME_LOOP_FUNCTION_CALL - 4;
 	overwriteInstructions((void*)GAME_LOOP_FUNCTION_CALL, &hookOffset, 4, &originalFunctionCall);
-	displayMessage("~p~Lauren's Cheat Device~w~ loaded~N~Hit LB + dpad for menu", 0, 0, 0);
+	displayMessage("~p~Cheat Device~w~ loaded~N~Hit LB + dpad for menu", 0, 0, 0);
 }
 
 void detour()
@@ -132,8 +128,10 @@ WORD buttonsHeld;
 WORD buttonsPressed;
 WORD buttonsReleased;
 WORD previousButtonState;
+WORD carSpawnID = 506; // Super GT
 unsigned int vehicleBALastFrame = NULL;
 void(*repairVehicle)();
+
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
 		exit();
@@ -179,10 +177,6 @@ void hack() {
 	if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK) {
 		cheats[8]->toggle();
 	}
-
-	if (GetAsyncKeyState(VK_NUMPAD0) & KEY_PRESSED_MASK) {
-		spawnCar(494);
-	}
 	if (GetAsyncKeyState(VK_NUMPAD1) & KEY_PRESSED_MASK) {
 		displayMessage((char*)"Hello, world!", 0, 0, 0);
 	}
@@ -222,6 +216,70 @@ void hack() {
 			showMenu();
 		}
 	}
+	previousButtonState = gamepadState.Gamepad.wButtons;
+	if (buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+		if (*menuShowing) {
+			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
+			}
+			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
+			}
+			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
+				carSpawnID--;
+				if (carSpawnID == 399) {
+					carSpawnID = 611;
+				}
+				bool badID = false;
+				do {
+					switch (carSpawnID) {
+					case 449:
+					case 537:
+					case 538:
+					case 569:
+					case 570:
+					case 590:
+					case 594:
+						carSpawnID--;
+						badID = true;
+						break;
+					default:
+						badID = false;
+					}
+				} while (badID);
+				showQuickCheatMenu();
+			}
+			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
+				carSpawnID++;
+				if (carSpawnID == 612) {
+					carSpawnID = 400;
+				}
+				bool badID = false;
+				do {
+					switch (carSpawnID) {
+					case 449:
+					case 537:
+					case 538:
+					case 569:
+					case 570:
+					case 590:
+					case 594:
+						carSpawnID++;
+						badID = true;
+						break;
+					default:
+						badID = false;
+					}
+				} while (badID);
+				showQuickCheatMenu();
+			}
+			else if (buttonsPressed & XINPUT_GAMEPAD_A) {
+				spawnCar(carSpawnID);
+			}
+		}
+		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
+			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
+			showQuickCheatMenu();
+		}
+	}
 	vehicleBALastFrame = vehicleBaseAddress;
 }
 
@@ -259,6 +317,27 @@ void showMenu() {
 	displayMessage(text.c_str(), 0, 0, 0);
 }
 
+void showQuickCheatMenu() {
+	string text = MENU_WHITE_TEXT_TOKEN;
+	unsigned int address = entityInfo[carSpawnID];
+	if (address) {
+		char* nameString = reinterpret_cast<char*>(address + 0x32);
+		text += "Spawn ";
+		text += nameString;
+		text += " (" + to_string(carSpawnID) + ")";
+		text += MENU_NEW_LINE;
+		/*char out[9];
+		sprintf_s(out, "%08p", nameString);
+		text += out;*/
+		displayMessage(text.c_str(), 0, 0, 0);
+	}
+	else {
+		string message = "Can't spawn: " + to_string(carSpawnID) + " is invalid";
+		displayMessage(message.c_str(), 0, 0, 0);
+	}
+
+}
+
 void noWantedLevel() {
 	*wantedLevel.heat  = 0;
 	*wantedLevel.stars = 0;
@@ -290,6 +369,15 @@ void infiniteCarHealth() {
 void hoverCar() {
 	if (!vehicle.baseAddress) {
 		return;
+	}
+	if (vehicle.objectClass == CLASS_CAR) {
+		float tireRot = *vehicle.tireRotation;
+		if (tireRot < 2.0f) {
+			*vehicle.tireRotation = tireRot + 0.05f;
+		}
+		else if (tireRot > 2.0f) {
+			*vehicle.tireRotation = 2.0f;
+		}
 	}
 	bool accelerate_button_held;
 	bool reverse_button_held;
@@ -363,6 +451,13 @@ void hoverCar() {
 	} else {
 		vehicle.rotationalVelocity->z *= 0.5f;
 	}
+}
+
+void disableHoverCar() {
+	if (!vehicle.baseAddress || vehicle.objectClass != CLASS_CAR) {
+		return;
+	}
+	*vehicle.tireRotation = 0.7046132684f;
 }
 
 void autoFlipCar() {
