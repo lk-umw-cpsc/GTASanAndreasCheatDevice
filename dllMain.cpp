@@ -15,12 +15,13 @@ using namespace std;
 /*
 	Ideas:
 	Player movement speed
-	Gravity
-	Player jump size (Moon jump)
+	Gravity 543087 gravity application instruction
+	Player jump size (Moon jump) +0x8c, lower = higher jump
 	Punt
 	Vehicle mass
 	Car speed
 	Crimes
+	Text? gta_sa.exe+31A243 
 */
 
 // derived from 5-byte JMP far opcode, -1 because of push esi created by Visual Studio
