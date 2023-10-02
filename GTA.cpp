@@ -54,3 +54,11 @@ void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->up = (Vector3d*)(baseAddress + UP_VECTOR_STRUCT_OFFSET);
 	vehicleOut->position = (Vector3d*)(baseAddress + POSITION_VECTOR_STRUCT_OFFSET);
 }
+
+const unsigned int* const pPlayerPedBaseAddress = (unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
+const unsigned int* const pPlayerVehicleBaseAddress = (unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;
+const unsigned int* const pWantedLevelBaseAddress = (unsigned int*)WANTED_LEVEL_STRUCT_POINTER;
+
+void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int) = (void(*)(const char*, unsigned int, unsigned int, unsigned int))DISPLAY_MESSAGE_FUNCTION_ADDRESS;
+void (*spawnCar)(unsigned short) = (void(*)(unsigned short))0x43A0B0;
+unsigned int* entityInfo = reinterpret_cast<unsigned int*>(ENTITY_INFO_TABLE_BASE_ADDRESS);

@@ -109,7 +109,14 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define CLASS_PLANE									0x00871948
 #define CLASS_HELICOPTER							0x00871680
 #define CLASS_BICYCLE								0x00871528
+#define DISPLAY_MESSAGE_FUNCTION_ADDRESS 0x00588BE0
 
-const unsigned int *const pPlayerPedBaseAddress = 		(const unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
-const unsigned int *const pPlayerVehicleBaseAddress =	(const unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;
-const unsigned int *const pWantedLevelBaseAddress = 	(const unsigned int*)WANTED_LEVEL_STRUCT_POINTER;
+#define ENTITY_INFO_TABLE_BASE_ADDRESS				0xA9B0C8
+
+extern const unsigned int* const pPlayerPedBaseAddress;
+extern const unsigned int* const pPlayerVehicleBaseAddress;
+extern const unsigned int* const pWantedLevelBaseAddress;
+
+extern void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int);
+extern void (*spawnCar)(unsigned short);
+extern unsigned int* entityInfo;

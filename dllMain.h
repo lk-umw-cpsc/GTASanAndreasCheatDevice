@@ -8,7 +8,6 @@ void hack();
 void exit();
 void unload();
 void showMenu();
-void showQuickCheatMenu();
 void noWantedLevel();
 void infiniteHealth();
 void infiniteHealthOff();
@@ -30,3 +29,5 @@ void carLockDetour();
 void enableNoPlaneExplosion();
 void disableNoPlaneExplosion();
 void rhinoCar();
+
+Vehicle* getCurrentVehicle();

@@ -7,6 +7,9 @@
 #include "GTA.h"
 #include "Cheat.h"
 #include "dllMain.h"
+#include "Memory.h"
+#include "QuickMenu.h"
+#include "GTAQuickMenu.h"
 
 using namespace std;
 /*
@@ -16,7 +19,6 @@ using namespace std;
 	Player jump size (Moon jump)
 	Punt
 	Vehicle mass
-	lock car doors
 	Car speed
 	Crimes
 */
@@ -27,27 +29,17 @@ using namespace std;
 #define GAME_LOOP_FUNCTION_CALL		0x0053C096
 #define GAME_LOOP_FUNCTION_ADDRESS	0x005684A0
 
-#define MENU_NEW_LINE "~N~"
-#define MENU_WHITE_TEXT_TOKEN "~w~";
-#define MENU_PURPLE_TEXT_TOKEN "~p~";
-
-#define ENTITY_INFO_TABLE			0xA9B0C8
-
-unsigned int* entityInfo = reinterpret_cast<unsigned int*>(ENTITY_INFO_TABLE);
-
 // 0x006CCCF0 0xC2, 0x08 - Disable plane explosions upon crashing
 
 const void (*fireRocket)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int) = (const void(*)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int))0x737C80;
 
-#define DISPLAY_MESSAGE_FUNCTION_ADDRESS (0x00588BE0)
-const void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int) = (const void(*)(const char*, unsigned int, unsigned int, unsigned int))DISPLAY_MESSAGE_FUNCTION_ADDRESS;
 bool* menuShowing = reinterpret_cast<bool*>(0x00BAA474);
 
 #define KEY_PRESSED_MASK 0x1
 #define KEY_DOWN_MASK 0x8000
 
-#define distance(a, b, c) (float)sqrt(a*a + b*b + c*c)
-#define distance2d(a, b) (float)sqrt(a*a + b*b)
+#define distance(a, b, c) ((float)sqrt(a*a + b*b + c*c))
+#define distance2d(a, b) ((float)sqrt(a*a + b*b))
 
 const void(*gameLoop)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
 
@@ -66,26 +58,17 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 	return TRUE;
 }
 
-void overwriteInstructions(void* target, void* newInstructions, const unsigned int numBytes, void* oldInstructionsOut) {
-	DWORD oldProtectionFlags;
-	VirtualProtect(target, numBytes, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
-	memcpy(oldInstructionsOut, target, numBytes);
-	memcpy(target, newInstructions, numBytes);
-	VirtualProtect(target, numBytes, oldProtectionFlags, &oldProtectionFlags);
-}
-
-void restoreInstructions(void* target, void* oldInstructions, const unsigned int numBytes) {
-	DWORD oldProtectionFlags;
-	VirtualProtect(target, numBytes, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
-	memcpy(target, oldInstructions, numBytes);
-	VirtualProtect(target, numBytes, oldProtectionFlags, &oldProtectionFlags);
-}
-
-void (*spawnCar)(unsigned short) = (void(*)(unsigned short))0x43A0B0;
-
 WantedLevel wantedLevel;
 Pedestrian player;
 Vehicle vehicle;
+
+QuickMenuItem* menuItems[] = {
+	new SpawnCarMenuItem(506),
+	new RepairVehicleMenuItem(),
+	new BlowUpMenuItem()
+};
+
+GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(QuickMenuItem*));
 
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
@@ -103,7 +86,6 @@ Cheat* cheats[] = {
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
 int menuIndex = 0;
-
 
 unsigned int originalFunctionCall;
 void init() {
@@ -130,7 +112,6 @@ WORD buttonsReleased;
 WORD previousButtonState;
 WORD carSpawnID = 506; // Super GT
 unsigned int vehicleBALastFrame = NULL;
-void(*repairVehicle)();
 
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
@@ -143,47 +124,31 @@ void hack() {
 		if (vehicleBaseAddress != vehicleBALastFrame) {
 			// in a new car
 			*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
-			unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
-			unsigned int pRepairVehicle = (*vtable)[50];
-			repairVehicle = (void(*)())(pRepairVehicle);
-			__asm { mov ecx, [vehicleBaseAddress] }
-			repairVehicle();
 		}
 	} else {
 		vehicle.baseAddress = NULL;
 	}
-	if (GetAsyncKeyState(VK_NUMPAD6) & KEY_PRESSED_MASK && vehicleBaseAddress) {
-		__asm { mov ecx, [vehicleBaseAddress] }
-		repairVehicle();
-	}
-	if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK && vehicleBaseAddress) {
-		unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
-		unsigned int pBlowUpVehicle = (*vtable)[41];
-		void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
-		__asm { mov ecx, [vehicleBaseAddress] }
-		blowUpVehicle(player.baseAddress, 0);
-	}
-	if (GetAsyncKeyState(VK_NUMPAD3) & KEY_PRESSED_MASK) {
+	/*if (GetAsyncKeyState(VK_NUMPAD3) & KEY_PRESSED_MASK) {
 		cheats[4]->toggle();
 		displayMessage(cheats[4]->getMenuText().c_str(), 0, 0, 0);
-	}
-	if (GetAsyncKeyState(VK_NUMPAD4) & KEY_PRESSED_MASK) {
-		cheats[5]->toggle();
-	}
-	if (GetAsyncKeyState(VK_NUMPAD5) & KEY_PRESSED_MASK) {
-		cheats[6]->toggle();
-	}
+	}*/
+	//if (GetAsyncKeyState(VK_NUMPAD4) & KEY_PRESSED_MASK) {
+	//	cheats[5]->toggle();
+	//}
+	//if (GetAsyncKeyState(VK_NUMPAD5) & KEY_PRESSED_MASK) {
+	//	cheats[6]->toggle();
+	//}
 
-	if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK) {
-		cheats[8]->toggle();
-	}
-	if (GetAsyncKeyState(VK_NUMPAD1) & KEY_PRESSED_MASK) {
-		displayMessage((char*)"Hello, world!", 0, 0, 0);
-	}
-	if (GetAsyncKeyState(VK_NUMPAD2) & KEY_PRESSED_MASK) {
-		// 741a53
-		fireRocket(player.baseAddress, 19, player.position->x + player.forward->x * 5, player.position->y + player.forward->y * 5, player.position->z + player.forward->z * 5, 0, 0, 0);
-	}
+	//if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK) {
+	//	cheats[8]->toggle();
+	//}
+	//if (GetAsyncKeyState(VK_NUMPAD1) & KEY_PRESSED_MASK) {
+	//	displayMessage((char*)"Hello, world!", 0, 0, 0);
+	//}
+	//if (GetAsyncKeyState(VK_NUMPAD2) & KEY_PRESSED_MASK) {
+	//	// 741a53
+	//	fireRocket(player.baseAddress, 19, player.position->x + player.forward->x * 5, player.position->y + player.forward->y * 5, player.position->z + player.forward->z * 5, 0, 0, 0);
+	//}
 	memset(&gamepadState, 0, sizeof(XINPUT_STATE));
 	usingGamepad = XInputGetState(0, &gamepadState) == ERROR_SUCCESS;
 	buttonsHeld = gamepadState.Gamepad.wButtons;
@@ -220,64 +185,30 @@ void hack() {
 	if (buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
 		if (*menuShowing) {
 			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
+				quickMenu.menuUp();
+				quickMenu.show();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
+				quickMenu.menuDown();
+				quickMenu.show();
+
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
-				carSpawnID--;
-				if (carSpawnID == 399) {
-					carSpawnID = 611;
-				}
-				bool badID = false;
-				do {
-					switch (carSpawnID) {
-					case 449:
-					case 537:
-					case 538:
-					case 569:
-					case 570:
-					case 590:
-					case 594:
-						carSpawnID--;
-						badID = true;
-						break;
-					default:
-						badID = false;
-					}
-				} while (badID);
-				showQuickCheatMenu();
+				quickMenu.selectedMenuItemLeft();
+				quickMenu.show();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-				carSpawnID++;
-				if (carSpawnID == 612) {
-					carSpawnID = 400;
-				}
-				bool badID = false;
-				do {
-					switch (carSpawnID) {
-					case 449:
-					case 537:
-					case 538:
-					case 569:
-					case 570:
-					case 590:
-					case 594:
-						carSpawnID++;
-						badID = true;
-						break;
-					default:
-						badID = false;
-					}
-				} while (badID);
-				showQuickCheatMenu();
+				quickMenu.selectedMenuItemRight();
+				quickMenu.show();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_A) {
-				spawnCar(carSpawnID);
+				quickMenu.activateSelectedMenuItem();
+				quickMenu.show();
 			}
 		}
 		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
 			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-			showQuickCheatMenu();
+			quickMenu.show();
 		}
 	}
 	vehicleBALastFrame = vehicleBaseAddress;
@@ -315,27 +246,6 @@ void showMenu() {
 		}
 	}
 	displayMessage(text.c_str(), 0, 0, 0);
-}
-
-void showQuickCheatMenu() {
-	string text = MENU_WHITE_TEXT_TOKEN;
-	unsigned int address = entityInfo[carSpawnID];
-	if (address) {
-		char* nameString = reinterpret_cast<char*>(address + 0x32);
-		text += "Spawn ";
-		text += nameString;
-		text += " (" + to_string(carSpawnID) + ")";
-		text += MENU_NEW_LINE;
-		/*char out[9];
-		sprintf_s(out, "%08p", nameString);
-		text += out;*/
-		displayMessage(text.c_str(), 0, 0, 0);
-	}
-	else {
-		string message = "Can't spawn: " + to_string(carSpawnID) + " is invalid";
-		displayMessage(message.c_str(), 0, 0, 0);
-	}
-
 }
 
 void noWantedLevel() {
@@ -661,4 +571,8 @@ void rhinoCar() {
 			}
 		}
 	}
+}
+
+Vehicle* getCurrentVehicle() {
+	return &vehicle;
 }
