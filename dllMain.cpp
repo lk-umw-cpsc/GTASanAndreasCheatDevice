@@ -74,6 +74,8 @@ GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
 	new Cheat(nullptr, &disableHoverCar, &hoverCar, "Hover Car", false),
+	new Cheat(nullptr, nullptr, &bToPunt, "Press B to punt", false),
+	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 	new Cheat(nullptr, nullptr, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health", true),
 	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
@@ -82,8 +84,8 @@ Cheat* cheats[] = {
 	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo", true),
 	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage", true),
 	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle", true),
+	new Cheat(&installPropertyPurchaseDetour, &uninstallPropertyPurchaseDetour, nullptr, "Purchase Any Property", true),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
-	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
 int menuIndex = 0;
@@ -555,20 +557,27 @@ void rhinoCar() {
 	unsigned int vehicleBaseAddress = vehicle.baseAddress;
 	if (vehicleBaseAddress) {
 		unsigned int touchedObjectBaseAddress = *vehicle.pTouch;
+		if (vehicleBaseAddress != vehicleBALastFrame) {
+			*vehicle.mass *= 8;
+		}
 		if (touchedObjectBaseAddress) {
-			unsigned int* pTouchedObjectClass = reinterpret_cast<unsigned int*>(touchedObjectBaseAddress);
-			unsigned int cls = *pTouchedObjectClass;
-			switch (cls) {
-			case CLASS_CAR:
-			case CLASS_MOTORCYCLE:
-			case CLASS_PLANE:
-			case CLASS_HELICOPTER:
-				unsigned int* vtable = reinterpret_cast<unsigned int*>(cls);
-				unsigned int pBlowUpVehicle = vtable[41];
-				void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
-				__asm { mov ecx, [touchedObjectBaseAddress] }
-				blowUpVehicle(player.baseAddress, 0);
-				break;
+			Vehicle v;
+			hookVehicle(touchedObjectBaseAddress, &v);
+			if (*v.health > 0) {
+				unsigned int* pTouchedObjectClass = reinterpret_cast<unsigned int*>(touchedObjectBaseAddress);
+				unsigned int cls = *pTouchedObjectClass;
+				switch (cls) {
+				case CLASS_CAR:
+				case CLASS_MOTORCYCLE:
+				case CLASS_PLANE:
+				case CLASS_HELICOPTER:
+					unsigned int* vtable = reinterpret_cast<unsigned int*>(cls);
+					unsigned int pBlowUpVehicle = vtable[41];
+					void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
+					__asm { mov ecx, [touchedObjectBaseAddress] }
+					blowUpVehicle(player.baseAddress, 0);
+					break;
+				}
 			}
 		}
 	}
@@ -576,4 +585,56 @@ void rhinoCar() {
 
 Vehicle* getCurrentVehicle() {
 	return &vehicle;
+}
+
+bool puntedLastFrame = false;
+Vector3d pleft, pforward, pup, pposition, pvelocity, protVelocity;
+#define PUNT_STEP 5.0f
+void bToPunt() {
+	if (vehicle.baseAddress && buttonsPressed & XINPUT_GAMEPAD_B) {
+		pleft = *vehicle.left;
+		pforward = *vehicle.forward;
+		pup = *vehicle.up;
+		pposition = *vehicle.position;
+		pvelocity = *vehicle.velocity;
+		protVelocity = *vehicle.rotationalVelocity;
+
+		vehicle.velocity->x += PUNT_STEP * vehicle.forward->x;
+		vehicle.velocity->y += PUNT_STEP * vehicle.forward->y;
+		vehicle.velocity->z += PUNT_STEP * vehicle.forward->z;
+		*vehicle.mass *= 8;
+		puntedLastFrame = true;
+	} else if (puntedLastFrame) {
+		*vehicle.left = pleft;
+		*vehicle.forward = pforward;
+		*vehicle.up = pup;
+		*vehicle.position = pposition;
+		*vehicle.velocity = pvelocity;
+		*vehicle.rotationalVelocity = protVelocity;
+		*vehicle.mass /= 8;
+		puntedLastFrame = false;
+	}
+}
+
+byte originalPropertyPurchaseCode[5];
+void installPropertyPurchaseDetour() {
+	byte jump[5] = { 0xE9, 0x0, 0x0, 0x0, 0x0 };
+	DWORD jumpOffset = (DWORD)&propertyPurchaseDetour - 0x457dd5 + FAR_JUMP_OFFSET;
+	memcpy(&jump[1], &jumpOffset, sizeof(DWORD));
+	overwriteInstructions((void*)0x457dd5, jump, sizeof(jump), originalPropertyPurchaseCode);
+}
+
+void uninstallPropertyPurchaseDetour() {
+	restoreInstructions((void*)0x457dd5, originalPropertyPurchaseCode, sizeof(originalPropertyPurchaseCode));
+}
+
+void propertyPurchaseDetour() {
+	__asm {
+		cmp eax, 0x0F
+		jne regular_jmp
+		mov eax, 0x10
+		regular_jmp:
+		movzx edx, byte ptr[eax + 0x0045887C]
+		jmp dword ptr[edx * 4 + 0x0045885C]
+	}
 }

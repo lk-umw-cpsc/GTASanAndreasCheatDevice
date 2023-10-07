@@ -45,6 +45,7 @@ void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->lock = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_LOCK_OFFSET);
 	vehicleOut->id = reinterpret_cast<unsigned short*>(baseAddress + VEHICLE_ID_OFFSET);
 	vehicleOut->tireRotation = reinterpret_cast<float*>(baseAddress + VEHICLE_TIRE_ROTATION_OFFSET);
+	vehicleOut->mass = (float*)(baseAddress + VEHICLE_MASS_OFFSET);
 }
 
 void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut) {

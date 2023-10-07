@@ -37,6 +37,7 @@ struct Vehicle {
 	Vector3d* velocity;
 	Vector3d* rotationalVelocity;
 	unsigned short* id;
+	float* mass;
 	unsigned int* pTouch;
 	float* health;
 	unsigned int* color;
@@ -79,6 +80,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define PEDESTRIAN_OXYGEN_OFFSET					0x550
 
 #define VEHICLE_ID_OFFSET							0x22
+#define VEHICLE_MASS_OFFSET							0x8C
 #define VEHICLE_HEALTH_OFFSET						0x4C0
 #define VEHICLE_DRIVER_POINTER_OFFSET				0x460
 #define VEHICLE_COLOR_OFFSET						0x434
@@ -109,7 +111,9 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define CLASS_PLANE									0x00871948
 #define CLASS_HELICOPTER							0x00871680
 #define CLASS_BICYCLE								0x00871528
-#define DISPLAY_MESSAGE_FUNCTION_ADDRESS 0x00588BE0
+#define CLASS_BOAT									0x008721A0
+
+#define DISPLAY_MESSAGE_FUNCTION_ADDRESS			0x00588BE0
 
 #define ENTITY_INFO_TABLE_BASE_ADDRESS				0xA9B0C8
 
@@ -120,3 +124,21 @@ extern const unsigned int* const pWantedLevelBaseAddress;
 extern void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int);
 extern void (*spawnCar)(unsigned short);
 extern unsigned int* entityInfo;
+
+/*
+"Crime" instructions
+
+562e2a 9090
+562e31 9090
+562275 9090
+562266 9090
+
+5624ad 909090909090
+5624da 909090909090
+
+Prevent function call
+562470 c2 04 00
+562c90 c3
+562120 c20c00
+
+*/

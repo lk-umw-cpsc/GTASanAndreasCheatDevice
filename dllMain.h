@@ -29,5 +29,10 @@ void carLockDetour();
 void enableNoPlaneExplosion();
 void disableNoPlaneExplosion();
 void rhinoCar();
+void bToPunt();
+void installPropertyPurchaseDetour();
+void uninstallPropertyPurchaseDetour();
+void propertyPurchaseDetour();
+
 
 Vehicle* getCurrentVehicle();
