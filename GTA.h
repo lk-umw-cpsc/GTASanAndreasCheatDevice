@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Windows.h>
+
 struct Vector3d {
 	float x, y, z;
 };
@@ -94,6 +96,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define WANTED_LEVEL_STRUCT_POINTER					0x00B7CD9C
 #define WANTED_LEVEL_HEAT_OFFSET					0x0
 #define WANTED_LEVEL_STARS_OFFSET					0x2C
+#define NO_CRIMES_FLAG_ADDRESS						0x00969171
 
 #define WEAPON_AMMO_DECREMENT1_ADDRESS				0x7428B0
 #define WEAPON_AMMO_DECREMENT2_ADDRESS				0x7428E6
@@ -120,6 +123,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 extern const unsigned int* const pPlayerPedBaseAddress;
 extern const unsigned int* const pPlayerVehicleBaseAddress;
 extern const unsigned int* const pWantedLevelBaseAddress;
+extern byte* const pNoCrimesFlag;
 
 extern void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int);
 extern void (*spawnCar)(unsigned short);

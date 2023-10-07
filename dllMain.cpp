@@ -252,6 +252,7 @@ void showMenu() {
 }
 
 void noWantedLevel() {
+	*pNoCrimesFlag = 1;
 	*wantedLevel.heat  = 0;
 	*wantedLevel.stars = 0;
 }
