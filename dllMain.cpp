@@ -293,6 +293,7 @@ void APIENTRY drawScene() {
 		pFont->DrawText(pSprite, cheats[0]->getMenuText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
 		widest = bounds.right - bounds.left;
 		fontSize = bounds.bottom - bounds.top;
+		lineGap = ceil(.2 * fontSize);
 		for (int i = 0; i < numCheats; i++) {
 			pFont->DrawText(pSprite, cheats[i]->getMenuText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
 			int width = bounds.right - bounds.left;
