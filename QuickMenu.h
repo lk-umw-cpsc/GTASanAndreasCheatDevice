@@ -1,6 +1,7 @@
 #pragma once
-
 #include <string>
+
+#include <d3dx9core.h>
 
 using namespace std;
 
@@ -20,7 +21,7 @@ protected:
 	int selectedMenuItemIndex;
 public:
 	QuickMenu(QuickMenuItem** menuItems, int numMenuItems);
-	virtual void show() = 0;
+	virtual void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) = 0;
 	void menuUp();
 	void menuDown();
 	void selectedMenuItemLeft();

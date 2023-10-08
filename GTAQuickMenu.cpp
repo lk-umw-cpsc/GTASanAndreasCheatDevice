@@ -7,27 +7,46 @@ using namespace std;
 GTASAQuickMenu::GTASAQuickMenu(QuickMenuItem** menuItems, int numMenuItems) : QuickMenu(menuItems, numMenuItems) {
 }
 
-void GTASAQuickMenu::show() {
-	string menuText = MENU_WHITE_TEXT_TOKEN;
+void GTASAQuickMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
+	if (numMenuItems == 0) {
+		return;
+	}
+	RECT r = { 100, 100, 1000, 300 };
+	D3DCOLOR color = D3DCOLOR_ARGB(255, 255, 255, 255);
+	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
+	int fontSize, lineGap;
+	//D3DXSPRITE_BILLBOARD | 
+	bool selectedCheat;
+	D3DCOLOR chosenColor;
+	RECT bounds = { 0, 0, 0, 0 };
+	int widest = 0;
 
-	const int last = numMenuItems - 1;
-
+	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+	widest = bounds.right - bounds.left;
+	fontSize = bounds.bottom - bounds.top;
+	lineGap = ceil(.2 * fontSize);
 	for (int i = 0; i < numMenuItems; i++) {
-		bool onSelected = i == selectedMenuItemIndex;
-		if (onSelected) {
-			menuText += MENU_PURPLE_TEXT_TOKEN;
-		}
-
-		menuText += menuItems[i]->getText();
-		if (i != last) {
-			menuText += MENU_NEW_LINE;
-		}
-		if (onSelected) {
-			menuText += MENU_WHITE_TEXT_TOKEN;
+		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+		int width = bounds.right - bounds.left;
+		if (widest < width) {
+			widest = width;
 		}
 	}
-
-	displayMessage(menuText.c_str(), 0, 0, 0);
+	D3DRECT menuBackgroundBounds = { 100 - 25, 100 - 25, 25 + 100 + widest, 25 + 100 + numMenuItems * (fontSize + lineGap) };
+	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
+	
+	for (int i = 0; i < numMenuItems; i++) {
+		selectedCheat = i == selectedMenuItemIndex;
+		if (selectedCheat) {
+			chosenColor = MENU_SELECTED_TEXT_COLOR;
+		}
+		else {
+			chosenColor = MENU_TEXT_COLOR;
+		}
+		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &r, DT_LEFT, chosenColor);
+		r.top += fontSize + lineGap;
+		r.bottom += fontSize + lineGap;
+	}
 }
 
 SpawnCarMenuItem::SpawnCarMenuItem(int defaultCarID) {

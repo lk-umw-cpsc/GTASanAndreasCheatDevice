@@ -53,7 +53,7 @@ bool* menuShowing = reinterpret_cast<bool*>(0x00BAA474);
 
 const void(*gameLoop)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
 
-bool displayMenu;
+bool displayMenu, displayQuickMenu;
 
 HWND hwnd;
 HINSTANCE hDLL;
@@ -86,7 +86,7 @@ GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
 	new Cheat(nullptr, &disableHoverCar, &hoverCar, "Hover Car", false),
-	//new Cheat(nullptr, nullptr, &bToPunt, "Press B to punt", false),
+	new Cheat(nullptr, nullptr, &bToPunt, "Press B to punt", false),
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health", true),
@@ -166,13 +166,10 @@ void hack() {
 		if (displayMenu) {
 			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
 				menuIndex = (menuIndex + numCheats - 1) % numCheats;
-				//showMenu();
 			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
 				menuIndex = (menuIndex + 1) % numCheats;
-				//showMenu();
 			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
 				cheats[menuIndex]->toggle();
-				//showMenu();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_B) {
 				displayMenu = false;
@@ -180,38 +177,36 @@ void hack() {
 		}
 		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
 			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-			//showMenu();
 			displayMenu = true;
+			displayQuickMenu = false;
 		}
 	}
 	previousButtonState = gamepadState.Gamepad.wButtons;
 	if (buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
-		if (*menuShowing) {
+		if (displayQuickMenu) {
 			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
 				quickMenu.menuUp();
-				quickMenu.show();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
 				quickMenu.menuDown();
-				quickMenu.show();
-
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
 				quickMenu.selectedMenuItemLeft();
-				quickMenu.show();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
 				quickMenu.selectedMenuItemRight();
-				quickMenu.show();
 			}
 			else if (buttonsPressed & XINPUT_GAMEPAD_A) {
 				quickMenu.activateSelectedMenuItem();
-				quickMenu.show();
+			}
+			else if (buttonsPressed & XINPUT_GAMEPAD_B) {
+				displayQuickMenu = false;
 			}
 		}
 		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
 			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-			quickMenu.show();
+			displayQuickMenu = true;
+			displayMenu = false;
 		}
 	}
 	vehicleBALastFrame = vehicleBaseAddress;
@@ -258,43 +253,64 @@ void d3d9hookinit() {
 	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
 	memcpy(&jump[1], &jumpOffset, 4);
 	overwriteInstructions((void*)endSceneAddress, jump, 5, overwrittenEndSceneCode);
+	dummyDevice->Release();
 }
 LPDIRECT3DDEVICE9 pDevice;
 LPD3DXFONT pFont = NULL;
 LPD3DXSPRITE pSprite;
+int fontSize = 0;
+int lineGap = 0;
 // __fastcall 
 void APIENTRY drawScene() {
-	if (!displayMenu) {
-		return;
-	}
 	//D3DRECT r = { 10, 10, 20, 20 };
 	RECT r = { 100, 100, 1000, 300 };
-	D3DCOLOR color = D3DCOLOR_ARGB(100, 255, 0, 0);
-	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 255, 255, 255);
+	D3DCOLOR color = D3DCOLOR_ARGB(255, 255, 255, 255);
+	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
 	if (!pFont) {
-		D3DXCreateFont(pDevice, 64, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Arial"), &pFont);
+		D3DVIEWPORT9 pViewport;
+		pDevice->GetViewport(&pViewport);
+		int height = pViewport.Height;
+		fontSize = ceil(.03 * height);
+		lineGap = ceil(.25 * fontSize);
+		lineGap = 0;
+		D3DXCreateFont(pDevice, fontSize, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Franklin Gothic"), &pFont);
 		D3DXCreateSprite(pDevice, &pSprite);
 	}
 	//D3DXSPRITE_BILLBOARD | 
 	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
-	//pFont->DrawText(pSprite, "Hello, world!", -1, &r, DT_LEFT, color);
-	string text = "";
 	bool selectedCheat;
 	D3DCOLOR* chosenColor;
-	for (int i = 0; i < numCheats; i++) {
-		selectedCheat = i == menuIndex;
-		if (selectedCheat) {
-			chosenColor = &color2;
+	RECT bounds = { 0, 0, 0, 0 };
+	int widest = 0;
+	if (displayMenu) {
+
+		pFont->DrawText(pSprite, cheats[0]->getMenuText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+		widest = bounds.right - bounds.left;
+		fontSize = bounds.bottom - bounds.top;
+		for (int i = 0; i < numCheats; i++) {
+			pFont->DrawText(pSprite, cheats[i]->getMenuText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+			int width = bounds.right - bounds.left;
+			if (widest < width) {
+				widest = width;
+			}
 		}
-		else {
-			chosenColor = &color;
+		D3DRECT menuBackgroundBounds = { 100 - 25, 100 - 25, 25 + 100 + widest, 25 + 100 + numCheats * (fontSize + lineGap) };
+		pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, D3DCOLOR_XRGB(32, 32, 32), 0, 0);
+		for (int i = 0; i < numCheats; i++) {
+			selectedCheat = i == menuIndex;
+			if (selectedCheat) {
+				chosenColor = &color2;
+			}
+			else {
+				chosenColor = &color;
+			}
+			pFont->DrawText(pSprite, cheats[i]->getMenuText().c_str(), -1, &r, DT_LEFT, *chosenColor);
+			r.top += fontSize + lineGap;
+			r.bottom += fontSize + lineGap;
 		}
-		r.top += 64 + 12;
-		r.bottom += 64 + 12;
-		TEXTMETRIC metric;
-		pFont->GetTextMetrics(&metric);
-		metric.
-		pFont->DrawText(pSprite, cheats[i]->getMenuText().c_str(), -1, &r, DT_LEFT, *chosenColor);
+	}
+	if (displayQuickMenu) {
+		quickMenu.show(pDevice, pFont, pSprite);
 	}
 	pSprite->End();
 	//pDevice->Clear(1, &r, D3DCLEAR_TARGET, color, 0, 0);
@@ -481,7 +497,7 @@ void disableHoverCar() {
 }
 
 void autoFlipCar() {
-	if (!vehicle.baseAddress) {
+	if (!vehicle.baseAddress || vehicle.objectClass != CLASS_CAR) {
 		return;
 	}
 	if (vehicle.up->z < -0.2f) {
@@ -694,11 +710,14 @@ Vehicle* getCurrentVehicle() {
 	return &vehicle;
 }
 
-bool puntedLastFrame = false;
+int afterPuntFrames = 0;
 Vector3d pleft, pforward, pup, pposition, pvelocity, protVelocity;
 #define PUNT_STEP 5.0f
 void bToPunt() {
-	if (vehicle.baseAddress && buttonsPressed & XINPUT_GAMEPAD_B) {
+	if (!vehicle.baseAddress) {
+		return;
+	}
+	if (buttonsPressed & XINPUT_GAMEPAD_B && afterPuntFrames == 0) {
 		pleft = *vehicle.left;
 		pforward = *vehicle.forward;
 		pup = *vehicle.up;
@@ -710,16 +729,18 @@ void bToPunt() {
 		vehicle.velocity->y += PUNT_STEP * vehicle.forward->y;
 		vehicle.velocity->z += PUNT_STEP * vehicle.forward->z;
 		*vehicle.mass *= 8;
-		puntedLastFrame = true;
-	} else if (puntedLastFrame) {
+		afterPuntFrames = 2;
+	} else if (afterPuntFrames > 0) {
+		if (afterPuntFrames == 2) {
+			*vehicle.mass /= 8;
+		}
 		*vehicle.left = pleft;
 		*vehicle.forward = pforward;
 		*vehicle.up = pup;
 		*vehicle.position = pposition;
 		*vehicle.velocity = pvelocity;
 		*vehicle.rotationalVelocity = protVelocity;
-		*vehicle.mass /= 8;
-		puntedLastFrame = false;
+		afterPuntFrames--;
 	}
 }
 

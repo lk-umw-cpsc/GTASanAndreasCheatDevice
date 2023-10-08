@@ -1,4 +1,5 @@
 #pragma once
+#include <d3dx9core.h>
 
 #include "QuickMenu.h"
 #include "dllMain.h"
@@ -7,10 +8,14 @@
 #define MENU_WHITE_TEXT_TOKEN "~w~"
 #define MENU_PURPLE_TEXT_TOKEN "~p~"
 
+#define MENU_TEXT_COLOR				D3DCOLOR_ARGB(255, 255, 255, 255)
+#define MENU_SELECTED_TEXT_COLOR	D3DCOLOR_ARGB(255, 203, 99, 255)
+#define MENU_BACKGROUND_COLOR		D3DCOLOR_XRGB(32, 32, 32)
+
 class GTASAQuickMenu : public QuickMenu {
 public:
 	GTASAQuickMenu(QuickMenuItem** menuItems, int numMenuItems);
-	void show();
+	void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite);
 };
 
 class SpawnCarMenuItem : public QuickMenuItem {
