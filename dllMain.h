@@ -38,6 +38,7 @@ void uninstallPropertyPurchaseDetour();
 void propertyPurchaseDetour();
 void enableExploreAnywhere();
 void disableExploreAnywhere();
+void holdRBForAirBrake();
 
 
 Vehicle* getCurrentVehicle();

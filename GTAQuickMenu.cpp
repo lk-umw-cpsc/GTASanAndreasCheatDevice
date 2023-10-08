@@ -163,67 +163,91 @@ void StepForwardMenuItem::onActivate() {
 	Pedestrian* player = getPlayer();
 	Vehicle* vehicle = getCurrentVehicle();
 	if (vehicle->baseAddress) {
-		vehicle->position->x += vehicle->forward->x;
-		vehicle->position->y += vehicle->forward->y;
-		vehicle->position->z += vehicle->forward->z;
+		vehicle->position->x += vehicle->forward->x * 5;
+		vehicle->position->y += vehicle->forward->y * 5;
+		vehicle->position->z += vehicle->forward->z * 5;
+		vehicle->velocity->x = 0;
+		vehicle->velocity->y = 0;
+		vehicle->velocity->z = 0;
 	}
 	else {
-		player->position->x += player->forward->x;
-		player->position->y += player->forward->y;
-		player->position->z += player->forward->z;
+		player->position->x += player->forward->x * 5;
+		player->position->y += player->forward->y * 5;
+		player->position->z += player->forward->z * 5;
+		player->velocity->x = 0;
+		player->velocity->y = 0;
+		player->velocity->z = 0;
 	}
 }
 
 string StepForwardMenuItem::getText() {
-	return "Step forward 1m";
+	return "Step forward 5m";
 }
 
 void StepUpMenuItem::onActivate() {
 	Pedestrian* player = getPlayer();
 	Vehicle* vehicle = getCurrentVehicle();
 	if (vehicle->baseAddress) {
-		vehicle->position->x += vehicle->up->x;
-		vehicle->position->y += vehicle->up->y;
-		vehicle->position->z += vehicle->up->z;
+		vehicle->position->x += vehicle->up->x * 5;
+		vehicle->position->y += vehicle->up->y * 5;
+		vehicle->position->z += vehicle->up->z * 5;
+		vehicle->velocity->x = 0;
+		vehicle->velocity->y = 0;
+		vehicle->velocity->z = 0;
 	}
 	else {
-		player->position->x += player->up->x;
-		player->position->y += player->up->y;
-		player->position->z += player->up->z;
+		player->position->x += player->up->x * 5;
+		player->position->y += player->up->y * 5;
+		player->position->z += player->up->z * 5;
+		player->velocity->x = 0;
+		player->velocity->y = 0;
+		player->velocity->z = 0;
 	}
 }
 
 string StepUpMenuItem::getText() {
-	return "Step up 1m";
+	return "Step up 5m";
 }
 
 void StepDownMenuItem::onActivate() {
 	Pedestrian* player = getPlayer();
 	Vehicle* vehicle = getCurrentVehicle();
 	if (vehicle->baseAddress) {
-		vehicle->position->x -= vehicle->up->x;
-		vehicle->position->y -= vehicle->up->y;
-		vehicle->position->z -= vehicle->up->z;
+		vehicle->position->x -= vehicle->up->x * 5;
+		vehicle->position->y -= vehicle->up->y * 5;
+		vehicle->position->z -= vehicle->up->z * 5;
+		vehicle->velocity->x = 0;
+		vehicle->velocity->y = 0;
+		vehicle->velocity->z = 0;
 	}
 	else {
-		player->position->x -= player->up->x;
-		player->position->y -= player->up->y;
-		player->position->z -= player->up->z;
+		player->position->x -= player->up->x * 5;
+		player->position->y -= player->up->y * 5;
+		player->position->z -= player->up->z * 5;
+		player->velocity->x = 0;
+		player->velocity->y = 0;
+		player->velocity->z = 0;
 	}
 }
 
 string StepDownMenuItem::getText() {
-	return "Step down 1m";
+	return "Step down 5m";
 }
 
 void QuickTakeOffMenuItem::onActivate() {
 	Pedestrian* player = getPlayer();
 	Vehicle* vehicle = getCurrentVehicle();
 	if (vehicle->baseAddress) {
-		vehicle->position->z += 200;
+		vehicle->position->z += 250;
 		vehicle->velocity->x += vehicle->forward->x * 5;
 		vehicle->velocity->y += vehicle->forward->y * 5;
 		vehicle->velocity->z += vehicle->forward->z * 5;
+	}
+	else {
+		player->position->z += 250;
+		player->velocity->x += player->forward->x * 5;
+		player->velocity->y += player->forward->y * 5;
+		player->velocity->z += player->forward->z * 5;
 	}
 }
 

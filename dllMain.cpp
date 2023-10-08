@@ -75,8 +75,8 @@ Vehicle vehicle;
 QuickMenuItem* menuItems[] = {
 	new SpawnCarMenuItem(506),
 	new RepairVehicleMenuItem(),
-	new StepForwardMenuItem(),
 	new QuickTakeOffMenuItem(),
+	new StepForwardMenuItem(),
 	new StepUpMenuItem(),
 	new StepDownMenuItem(),
 	new BlowUpMenuItem()
@@ -87,10 +87,11 @@ GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
 	new Cheat(nullptr, &disableHoverCar, &hoverCar, "Hover Car", false),
-	new Cheat(nullptr, nullptr, &bToPunt, "Press B to punt", false),
+	new Cheat(nullptr, nullptr, &bToPunt, "Press B to Punt", false),
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
+	new Cheat(nullptr, nullptr, &holdRBForAirBrake, "Hold RB for Air Brake", false),
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
-	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health", true),
+	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
 	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
 	new Cheat(nullptr, nullptr, &autoFlipCar, "Auto Flip Car", true),
 	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike", true),
@@ -787,4 +788,19 @@ void enableExploreAnywhere() {
 
 void disableExploreAnywhere() {
 	restoreInstructions((void*)EXPLORATION_CRIME_INSTRUCTION_ADDRESS, originalExplorationCrimeInstructions, sizeof(originalExplorationCrimeInstructions));
+}
+
+void holdRBForAirBrake() {
+	if (buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
+		if (vehicle.baseAddress) {
+			vehicle.velocity->x *= .9f;
+			vehicle.velocity->y *= .9f;
+			vehicle.velocity->z *= .9f;
+		}
+		else {
+			player.velocity->x *= .9f;
+			player.velocity->y *= .9f;
+			player.velocity->z *= .9f;
+		}
+	}
 }
