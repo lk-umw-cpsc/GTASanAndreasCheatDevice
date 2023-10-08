@@ -3,6 +3,7 @@
 #include <string>
 #include <math.h>
 #include <Xinput.h>
+#include <fstream>
 
 #include "GTA.h"
 #include "Cheat.h"
@@ -27,8 +28,8 @@ using namespace std;
 // derived from 5-byte JMP far opcode, -1 because of push esi created by Visual Studio
 #define FAR_JUMP_OFFSET (-4)
 
-#define GAME_LOOP_FUNCTION_CALL		0x0053C096
-#define GAME_LOOP_FUNCTION_ADDRESS	0x005684A0
+#define GAME_LOOP_FUNCTION_CALL				0x0053C096
+#define GAME_LOOP_FUNCTION_ADDRESS			0x005684A0
 
 // 0x006CCCF0 0xC2, 0x08 - Disable plane explosions upon crashing
 
@@ -55,8 +56,74 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 		// Call the init function once the DLL is attached to a process
 		hDLL = hinstDLL;
 		init();
+		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)d3d9hookinit, 0, 0, 0);
 	}
 	return TRUE;
+}
+unsigned int endSceneAddress, jumpBackAddress;
+void (*EndScene)(LPDIRECT3DDEVICE9);
+void d3d9hookinit() {
+	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
+	if (!d3d) {
+		return;
+	}
+	IDirect3DDevice9* dummyDevice = nullptr;
+	D3DPRESENT_PARAMETERS params = {};
+	params.Windowed = false;
+	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	HWND handle = FindWindow(NULL, "GTA: San Andreas");
+	params.hDeviceWindow = handle;
+
+	HRESULT success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
+	if (success != S_OK) {
+		params.Windowed = true;
+		success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
+	}
+	d3d->Release();
+	if (success != S_OK) {
+		return;
+	}
+	unsigned int** vtable = reinterpret_cast<unsigned int**>(dummyDevice);
+	endSceneAddress = (*vtable)[42];
+	jumpBackAddress = endSceneAddress + 6;
+	EndScene = (void(*)(LPDIRECT3DDEVICE9))endSceneAddress;
+	ofstream f;
+	f.open("endscene.txt");
+	f << hex << endSceneAddress << endl << (*vtable + 42);
+	f.close();
+	/*DWORD oldProtectionFlags;
+	VirtualProtect((void*)(*vtable + 42), 4, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
+	(*vtable)[42] = (DWORD)endSceneDetour;
+	VirtualProtect((void*)(*vtable + 42), 4, oldProtectionFlags, &oldProtectionFlags);*/
+	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
+	byte old[5];
+	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
+	memcpy(&jump[1], &jumpOffset, 4);
+	overwriteInstructions((void*)endSceneAddress, jump, 5, old);
+}
+// __fastcall 
+void APIENTRY myEndScene(LPDIRECT3DDEVICE9 pDevice) {
+	D3DRECT r = { 10, 10, 20, 20 };
+	D3DCOLOR color = D3DCOLOR_ARGB(100, 255, 0, 0);
+	/*pDevice->Clear(1, &r, D3DCLEAR_TARGET, color, 0, 0);*/
+}
+
+void endSceneDetour() {
+	__asm {
+		push ebp
+		push esp
+	}
+	LPDIRECT3DDEVICE9 device;
+	__asm mov device, ecx
+	myEndScene(device);
+	__asm {
+		pop esp
+		pop ebp
+		push ebp
+		mov ebp, esp
+		mov eax, [ebp + 0x08]
+		jmp jumpBackAddress 
+	}
 }
 
 WantedLevel wantedLevel;
@@ -74,9 +141,9 @@ GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
 	new Cheat(nullptr, &disableHoverCar, &hoverCar, "Hover Car", false),
-	new Cheat(nullptr, nullptr, &bToPunt, "Press B to punt", false),
+	//new Cheat(nullptr, nullptr, &bToPunt, "Press B to punt", false),
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
-	new Cheat(nullptr, nullptr, &noWantedLevel, "No Wanted Level", true),
+	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health", true),
 	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
 	new Cheat(nullptr, nullptr, &autoFlipCar, "Auto Flip Car", true),
@@ -85,6 +152,7 @@ Cheat* cheats[] = {
 	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage", true),
 	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle", true),
 	new Cheat(&installPropertyPurchaseDetour, &uninstallPropertyPurchaseDetour, nullptr, "Purchase Any Property", true),
+	new Cheat(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere", true),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
@@ -131,23 +199,6 @@ void hack() {
 	} else {
 		vehicle.baseAddress = NULL;
 	}
-	/*if (GetAsyncKeyState(VK_NUMPAD3) & KEY_PRESSED_MASK) {
-		cheats[4]->toggle();
-		displayMessage(cheats[4]->getMenuText().c_str(), 0, 0, 0);
-	}*/
-	//if (GetAsyncKeyState(VK_NUMPAD4) & KEY_PRESSED_MASK) {
-	//	cheats[5]->toggle();
-	//}
-	//if (GetAsyncKeyState(VK_NUMPAD5) & KEY_PRESSED_MASK) {
-	//	cheats[6]->toggle();
-	//}
-
-	//if (GetAsyncKeyState(VK_NUMPAD7) & KEY_PRESSED_MASK) {
-	//	cheats[8]->toggle();
-	//}
-	//if (GetAsyncKeyState(VK_NUMPAD1) & KEY_PRESSED_MASK) {
-	//	displayMessage((char*)"Hello, world!", 0, 0, 0);
-	//}
 	//if (GetAsyncKeyState(VK_NUMPAD2) & KEY_PRESSED_MASK) {
 	//	// 741a53
 	//	fireRocket(player.baseAddress, 19, player.position->x + player.forward->x * 5, player.position->y + player.forward->y * 5, player.position->z + player.forward->z * 5, 0, 0, 0);
@@ -255,6 +306,10 @@ void noWantedLevel() {
 	*pNoCrimesFlag = 1;
 	*wantedLevel.heat  = 0;
 	*wantedLevel.stars = 0;
+}
+
+void disableNoWantedLevel() {
+	*pNoCrimesFlag = 0;
 }
 
 void infiniteHealth() {
@@ -632,10 +687,20 @@ void uninstallPropertyPurchaseDetour() {
 void propertyPurchaseDetour() {
 	__asm {
 		cmp eax, 0x0F
-		jne regular_jmp
+		jne not_0x0F
 		mov eax, 0x10
-		regular_jmp:
+		not_0x0F:
 		movzx edx, byte ptr[eax + 0x0045887C]
 		jmp dword ptr[edx * 4 + 0x0045885C]
 	}
+}
+
+byte originalExplorationCrimeInstructions[6];
+void enableExploreAnywhere() {
+	byte nops[6] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+	overwriteInstructions((void*)EXPLORATION_CRIME_INSTRUCTION_ADDRESS, nops, sizeof(nops), originalExplorationCrimeInstructions);
+}
+
+void disableExploreAnywhere() {
+	restoreInstructions((void*)EXPLORATION_CRIME_INSTRUCTION_ADDRESS, originalExplorationCrimeInstructions, sizeof(originalExplorationCrimeInstructions));
 }

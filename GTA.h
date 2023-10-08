@@ -97,6 +97,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define WANTED_LEVEL_HEAT_OFFSET					0x0
 #define WANTED_LEVEL_STARS_OFFSET					0x2C
 #define NO_CRIMES_FLAG_ADDRESS						0x00969171
+#define EXPLORATION_CRIME_INSTRUCTION_ADDRESS		0x5624da
 
 #define WEAPON_AMMO_DECREMENT1_ADDRESS				0x7428B0
 #define WEAPON_AMMO_DECREMENT2_ADDRESS				0x7428E6
@@ -146,3 +147,5 @@ Prevent function call
 562120 c20c00
 
 */
+
+//7fde3b ??? D3D call
