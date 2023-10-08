@@ -36,7 +36,7 @@ public:
 	void onActivate();
 };
 
-class BlowUpMenuItem : public QuickMenuItem {
+class SelfDestructMenuItem : public QuickMenuItem {
 public:
 	string getText();
 	void onActivate();

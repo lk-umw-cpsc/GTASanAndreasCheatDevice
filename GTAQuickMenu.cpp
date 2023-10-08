@@ -142,11 +142,11 @@ void RepairVehicleMenuItem::onActivate()
 	repairVehicle();
 }
 
-string BlowUpMenuItem::getText() {
+string SelfDestructMenuItem::getText() {
 	return "Self Destruct";
 }
 
-void BlowUpMenuItem::onActivate() {
+void SelfDestructMenuItem::onActivate() {
 	Vehicle* vehicle = getCurrentVehicle();
 	unsigned int vehicleBaseAddress = vehicle->baseAddress;
 	if (!vehicleBaseAddress) {

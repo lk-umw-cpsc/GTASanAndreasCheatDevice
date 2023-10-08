@@ -79,7 +79,7 @@ QuickMenuItem* menuItems[] = {
 	new StepForwardMenuItem(),
 	new StepUpMenuItem(),
 	new StepDownMenuItem(),
-	new BlowUpMenuItem()
+	new SelfDestructMenuItem()
 };
 
 GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(QuickMenuItem*));
