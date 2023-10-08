@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <d3d9.h>
+#include <d3dx9core.h>
 #include <string>
 #include <math.h>
 #include <Xinput.h>
@@ -13,6 +14,13 @@
 #include "GTAQuickMenu.h"
 
 using namespace std;
+
+/*
+$(DXSDK_DIR)Include
+$(DXSDK_DIR)Lib\x86
+
+*/
+
 /*
 	Ideas:
 	Player movement speed
@@ -45,6 +53,8 @@ bool* menuShowing = reinterpret_cast<bool*>(0x00BAA474);
 
 const void(*gameLoop)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
 
+bool displayMenu;
+
 HWND hwnd;
 HINSTANCE hDLL;
 
@@ -59,71 +69,6 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)d3d9hookinit, 0, 0, 0);
 	}
 	return TRUE;
-}
-unsigned int endSceneAddress, jumpBackAddress;
-void (*EndScene)(LPDIRECT3DDEVICE9);
-void d3d9hookinit() {
-	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
-	if (!d3d) {
-		return;
-	}
-	IDirect3DDevice9* dummyDevice = nullptr;
-	D3DPRESENT_PARAMETERS params = {};
-	params.Windowed = false;
-	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	HWND handle = FindWindow(NULL, "GTA: San Andreas");
-	params.hDeviceWindow = handle;
-
-	HRESULT success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
-	if (success != S_OK) {
-		params.Windowed = true;
-		success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
-	}
-	d3d->Release();
-	if (success != S_OK) {
-		return;
-	}
-	unsigned int** vtable = reinterpret_cast<unsigned int**>(dummyDevice);
-	endSceneAddress = (*vtable)[42];
-	jumpBackAddress = endSceneAddress + 6;
-	EndScene = (void(*)(LPDIRECT3DDEVICE9))endSceneAddress;
-	ofstream f;
-	f.open("endscene.txt");
-	f << hex << endSceneAddress << endl << (*vtable + 42);
-	f.close();
-	/*DWORD oldProtectionFlags;
-	VirtualProtect((void*)(*vtable + 42), 4, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
-	(*vtable)[42] = (DWORD)endSceneDetour;
-	VirtualProtect((void*)(*vtable + 42), 4, oldProtectionFlags, &oldProtectionFlags);*/
-	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
-	byte old[5];
-	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
-	memcpy(&jump[1], &jumpOffset, 4);
-	overwriteInstructions((void*)endSceneAddress, jump, 5, old);
-}
-// __fastcall 
-void APIENTRY myEndScene(LPDIRECT3DDEVICE9 pDevice) {
-	D3DRECT r = { 10, 10, 20, 20 };
-	D3DCOLOR color = D3DCOLOR_ARGB(100, 255, 0, 0);
-	/*pDevice->Clear(1, &r, D3DCLEAR_TARGET, color, 0, 0);*/
-}
-
-void endSceneDetour() {
-	__asm {
-		push ebp
-		push esp
-	}
-	LPDIRECT3DDEVICE9 device;
-	__asm mov device, ecx
-	myEndScene(device);
-	__asm {
-		pop esp
-		pop ebp
-		push ebp
-		mov ebp, esp
-		mov eax, [ebp + 0x08]
-		jmp jumpBackAddress 
-	}
 }
 
 WantedLevel wantedLevel;
@@ -218,21 +163,25 @@ void hack() {
 	}
 	previousButtonState = gamepadState.Gamepad.wButtons;
 	if (buttonsHeld & XINPUT_GAMEPAD_LEFT_SHOULDER) {
-		if (*menuShowing) {
+		if (displayMenu) {
 			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
 				menuIndex = (menuIndex + numCheats - 1) % numCheats;
-				showMenu();
+				//showMenu();
 			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
 				menuIndex = (menuIndex + 1) % numCheats;
-				showMenu();
+				//showMenu();
 			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
 				cheats[menuIndex]->toggle();
-				showMenu();
+				//showMenu();
+			}
+			else if (buttonsPressed & XINPUT_GAMEPAD_B) {
+				displayMenu = false;
 			}
 		}
 		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
 			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-			showMenu();
+			//showMenu();
+			displayMenu = true;
 		}
 	}
 	previousButtonState = gamepadState.Gamepad.wButtons;
@@ -268,11 +217,113 @@ void hack() {
 	vehicleBALastFrame = vehicleBaseAddress;
 }
 
+
+unsigned int endSceneAddress, jumpBackAddress;
+void (*EndScene)(LPDIRECT3DDEVICE9);
+byte overwrittenEndSceneCode[5];
+void d3d9hookinit() {
+	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
+	if (!d3d) {
+		return;
+	}
+	IDirect3DDevice9* dummyDevice = nullptr;
+	D3DPRESENT_PARAMETERS params = {};
+	params.Windowed = false;
+	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	HWND handle = FindWindow(NULL, "GTA: San Andreas");
+	params.hDeviceWindow = handle;
+
+	HRESULT success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
+	if (success != S_OK) {
+		params.Windowed = true;
+		success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
+	}
+	d3d->Release();
+	if (success != S_OK) {
+		return;
+	}
+	unsigned int** vtable = reinterpret_cast<unsigned int**>(dummyDevice);
+	endSceneAddress = (*vtable)[42];
+	jumpBackAddress = endSceneAddress + 6;
+	EndScene = (void(*)(LPDIRECT3DDEVICE9))endSceneAddress;
+	ofstream f;
+	f.open("endscene.txt");
+	f << hex << endSceneAddress << endl << (*vtable + 42);
+	f.close();
+	/*DWORD oldProtectionFlags;
+	VirtualProtect((void*)(*vtable + 42), 4, PAGE_EXECUTE_READWRITE, &oldProtectionFlags);
+	(*vtable)[42] = (DWORD)endSceneDetour;
+	VirtualProtect((void*)(*vtable + 42), 4, oldProtectionFlags, &oldProtectionFlags);*/
+	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
+	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
+	memcpy(&jump[1], &jumpOffset, 4);
+	overwriteInstructions((void*)endSceneAddress, jump, 5, overwrittenEndSceneCode);
+}
+LPDIRECT3DDEVICE9 pDevice;
+LPD3DXFONT pFont = NULL;
+LPD3DXSPRITE pSprite;
+// __fastcall 
+void APIENTRY drawScene() {
+	if (!displayMenu) {
+		return;
+	}
+	//D3DRECT r = { 10, 10, 20, 20 };
+	RECT r = { 100, 100, 1000, 300 };
+	D3DCOLOR color = D3DCOLOR_ARGB(100, 255, 0, 0);
+	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 255, 255, 255);
+	if (!pFont) {
+		D3DXCreateFont(pDevice, 64, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Arial"), &pFont);
+		D3DXCreateSprite(pDevice, &pSprite);
+	}
+	//D3DXSPRITE_BILLBOARD | 
+	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
+	//pFont->DrawText(pSprite, "Hello, world!", -1, &r, DT_LEFT, color);
+	string text = "";
+	bool selectedCheat;
+	D3DCOLOR* chosenColor;
+	for (int i = 0; i < numCheats; i++) {
+		selectedCheat = i == menuIndex;
+		if (selectedCheat) {
+			chosenColor = &color2;
+		}
+		else {
+			chosenColor = &color;
+		}
+		r.top += 64 + 12;
+		r.bottom += 64 + 12;
+		TEXTMETRIC metric;
+		pFont->GetTextMetrics(&metric);
+		metric.
+		pFont->DrawText(pSprite, cheats[i]->getMenuText().c_str(), -1, &r, DT_LEFT, *chosenColor);
+	}
+	pSprite->End();
+	//pDevice->Clear(1, &r, D3DCLEAR_TARGET, color, 0, 0);
+}
+
+void endSceneDetour() {
+	__asm {
+		push ebp
+		push esp
+	}
+
+	__asm mov pDevice, eax
+	drawScene();
+	__asm {
+		pop esp
+		pop ebp
+		push ebp
+		mov ebp, esp
+		mov eax, [ebp + 0x08]
+		jmp jumpBackAddress
+	}
+}
+
 void exit() {
 	for (int i = 0; i < numCheats; i++) {
 		cheats[i]->setEnabled(false);
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &originalFunctionCall, 4);
+	restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
 	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
 }
