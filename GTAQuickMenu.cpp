@@ -158,3 +158,75 @@ void BlowUpMenuItem::onActivate() {
 	__asm { mov ecx, [vehicleBaseAddress] }
 	blowUpVehicle(0, 0);
 }
+
+void StepForwardMenuItem::onActivate() {
+	Pedestrian* player = getPlayer();
+	Vehicle* vehicle = getCurrentVehicle();
+	if (vehicle->baseAddress) {
+		vehicle->position->x += vehicle->forward->x;
+		vehicle->position->y += vehicle->forward->y;
+		vehicle->position->z += vehicle->forward->z;
+	}
+	else {
+		player->position->x += player->forward->x;
+		player->position->y += player->forward->y;
+		player->position->z += player->forward->z;
+	}
+}
+
+string StepForwardMenuItem::getText() {
+	return "Step forward 1m";
+}
+
+void StepUpMenuItem::onActivate() {
+	Pedestrian* player = getPlayer();
+	Vehicle* vehicle = getCurrentVehicle();
+	if (vehicle->baseAddress) {
+		vehicle->position->x += vehicle->up->x;
+		vehicle->position->y += vehicle->up->y;
+		vehicle->position->z += vehicle->up->z;
+	}
+	else {
+		player->position->x += player->up->x;
+		player->position->y += player->up->y;
+		player->position->z += player->up->z;
+	}
+}
+
+string StepUpMenuItem::getText() {
+	return "Step up 1m";
+}
+
+void StepDownMenuItem::onActivate() {
+	Pedestrian* player = getPlayer();
+	Vehicle* vehicle = getCurrentVehicle();
+	if (vehicle->baseAddress) {
+		vehicle->position->x -= vehicle->up->x;
+		vehicle->position->y -= vehicle->up->y;
+		vehicle->position->z -= vehicle->up->z;
+	}
+	else {
+		player->position->x -= player->up->x;
+		player->position->y -= player->up->y;
+		player->position->z -= player->up->z;
+	}
+}
+
+string StepDownMenuItem::getText() {
+	return "Step down 1m";
+}
+
+void QuickTakeOffMenuItem::onActivate() {
+	Pedestrian* player = getPlayer();
+	Vehicle* vehicle = getCurrentVehicle();
+	if (vehicle->baseAddress) {
+		vehicle->position->z += 200;
+		vehicle->velocity->x += vehicle->forward->x * 5;
+		vehicle->velocity->y += vehicle->forward->y * 5;
+		vehicle->velocity->z += vehicle->forward->z * 5;
+	}
+}
+
+string QuickTakeOffMenuItem::getText() {
+	return "Quick Take Off";
+}

@@ -41,3 +41,4 @@ void disableExploreAnywhere();
 
 
 Vehicle* getCurrentVehicle();
+Pedestrian* getPlayer();

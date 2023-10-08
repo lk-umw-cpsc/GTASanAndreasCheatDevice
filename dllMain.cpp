@@ -26,11 +26,8 @@ $(DXSDK_DIR)Lib\x86
 	Player movement speed
 	Gravity 543087 gravity application instruction
 	Player jump size (Moon jump) +0x8c, lower = higher jump
-	Punt
 	Vehicle mass
 	Car speed
-	Crimes
-	Text? gta_sa.exe+31A243 
 */
 
 // derived from 5-byte JMP far opcode, -1 because of push esi created by Visual Studio
@@ -78,6 +75,10 @@ Vehicle vehicle;
 QuickMenuItem* menuItems[] = {
 	new SpawnCarMenuItem(506),
 	new RepairVehicleMenuItem(),
+	new StepForwardMenuItem(),
+	new QuickTakeOffMenuItem(),
+	new StepUpMenuItem(),
+	new StepDownMenuItem(),
 	new BlowUpMenuItem()
 };
 
@@ -134,7 +135,11 @@ void hack() {
 		exit();
 		return;
 	}
+	unsigned int playerBaseAddress = *pPlayerPedBaseAddress;
 	unsigned int vehicleBaseAddress = *pPlayerVehicleBaseAddress;
+	if (playerBaseAddress != player.baseAddress && playerBaseAddress) {
+		hookPedestrian(playerBaseAddress, &player);
+	}
 	if (vehicleBaseAddress) {
 		hookVehicle(vehicleBaseAddress, &vehicle);
 		if (vehicleBaseAddress != vehicleBALastFrame) {
@@ -710,6 +715,10 @@ Vehicle* getCurrentVehicle() {
 	return &vehicle;
 }
 
+Pedestrian* getPlayer() {
+	return &player;
+}
+
 int afterPuntFrames = 0;
 Vector3d pleft, pforward, pup, pposition, pvelocity, protVelocity;
 #define PUNT_STEP 5.0f
@@ -734,6 +743,9 @@ void bToPunt() {
 		if (afterPuntFrames == 2) {
 			*vehicle.mass /= 8;
 		}
+		pposition.x += pvelocity.x;
+		pposition.y += pvelocity.y;
+		pposition.z += pvelocity.z;
 		*vehicle.left = pleft;
 		*vehicle.forward = pforward;
 		*vehicle.up = pup;

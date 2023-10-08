@@ -41,3 +41,27 @@ public:
 	string getText();
 	void onActivate();
 };
+
+class StepForwardMenuItem : public QuickMenuItem {
+public:
+	string getText();
+	void onActivate();
+};
+
+class StepUpMenuItem : public QuickMenuItem {
+public:
+	string getText();
+	void onActivate();
+};
+
+class StepDownMenuItem : public QuickMenuItem {
+public:
+	string getText();
+	void onActivate();
+};
+
+class QuickTakeOffMenuItem : public QuickMenuItem {
+public:
+	string getText();
+	void onActivate();
+};
