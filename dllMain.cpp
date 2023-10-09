@@ -262,16 +262,12 @@ void d3d9hookinit() {
 LPDIRECT3DDEVICE9 pDevice;
 LPD3DXFONT pFont = NULL;
 LPD3DXSPRITE pSprite;
+D3DVIEWPORT9 pViewport;
 int fontSize = 0;
 int lineGap = 0;
 // __fastcall 
 void APIENTRY drawScene() {
-	//D3DRECT r = { 10, 10, 20, 20 };
-	RECT r = { 100, 100, 1000, 300 };
-	D3DCOLOR color = D3DCOLOR_ARGB(255, 255, 255, 255);
-	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
 	if (!pFont) {
-		D3DVIEWPORT9 pViewport;
 		pDevice->GetViewport(&pViewport);
 		int height = pViewport.Height;
 		fontSize = ceil(.03 * height);
@@ -280,6 +276,10 @@ void APIENTRY drawScene() {
 		D3DXCreateFont(pDevice, fontSize, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Franklin Gothic"), &pFont);
 		D3DXCreateSprite(pDevice, &pSprite);
 	}
+	//D3DRECT r = { 10, 10, 20, 20 };
+	RECT r = { 100, 100, pViewport.Width, pViewport.Height };
+	D3DCOLOR color = D3DCOLOR_ARGB(255, 255, 255, 255);
+	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
 	//D3DXSPRITE_BILLBOARD | 
 	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
 	bool selectedCheat;
@@ -311,7 +311,6 @@ void APIENTRY drawScene() {
 			}
 			pFont->DrawText(pSprite, cheats[i]->getMenuText().c_str(), -1, &r, DT_LEFT, *chosenColor);
 			r.top += fontSize + lineGap;
-			r.bottom += fontSize + lineGap;
 		}
 	}
 	if (displayQuickMenu) {
