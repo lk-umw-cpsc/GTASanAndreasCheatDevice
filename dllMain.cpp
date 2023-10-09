@@ -404,7 +404,9 @@ void infiniteCarHealth() {
 		return;
 	}
 	*vehicle.health = 10000.f;
-	*vehicle.wheelState = { 0, 0, 0, 0};
+	if (vehicle.objectClass == CLASS_CAR) {
+		*vehicle.wheelState = { 0, 0, 0, 0 };
+	}
 }
 
 #define HOVER_CAR_MAX_VELOCITY 3.0f
