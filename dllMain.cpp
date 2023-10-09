@@ -317,6 +317,9 @@ void APIENTRY drawScene() {
 	if (displayQuickMenu) {
 		quickMenu.show(pDevice, pFont, pSprite);
 	}
+	// d3ddev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	// d3ddev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	// d3ddev->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 	pSprite->End();
 	//pDevice->Clear(1, &r, D3DCLEAR_TARGET, color, 0, 0);
 }
@@ -811,6 +814,9 @@ void dpadLeftToToggleCarLock() {
 	if (!vehicle.baseAddress) {
 		return;
 	}
+	if (vehicle.objectClass == CLASS_BOAT || vehicle.objectClass == CLASS_MOTORCYCLE || vehicle.objectClass == CLASS_BICYCLE) {
+		return;
+	}
 	if (!(buttonsHeld & XINPUT_GAMEPAD_LEFT_SHOULDER || buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER)) {
 		if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
 			if (*vehicle.lock == VEHICLE_LOCK_STATE_LOCKED) {
@@ -827,6 +833,9 @@ void dpadLeftToToggleCarLock() {
 
 void autoLockCarDoors() {
 	if (vehicle.baseAddress && vehicle.baseAddress != vehicleBALastFrame) {
+		if (vehicle.objectClass == CLASS_BOAT || vehicle.objectClass == CLASS_MOTORCYCLE || vehicle.objectClass == CLASS_BICYCLE) {
+			return;
+		}
 		// in a new car
 		*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
 		displayMessage("Doors locked", 0, 0, 0);
