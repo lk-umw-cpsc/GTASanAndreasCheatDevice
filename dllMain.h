@@ -42,7 +42,8 @@ void holdRBForAirBrake();
 void dpadLeftToToggleCarLock();
 void autoLockCarDoors();
 void repellantTouch();
-
+void enableNoPlaneDamage();
+void disableNoPlaneDamage();
 
 Vehicle* getCurrentVehicle();
 Pedestrian* getPlayer();

@@ -102,6 +102,8 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_LOCK_STATE_UNLOCKED					1
 #define VEHICLE_WHEEL_STATE_OFFSET					0x5A5
 
+#define PLANE_DAMAGE_OFFSET							0x5B4 //DWORD
+
 #define VEHICLE_PASSENGER_OFFSET					0x460
 #define VEHICLE_TIRE_ROTATION_OFFSET				0x898
 
@@ -119,6 +121,9 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define VEHICLE_LOCK_CHECK_ADDRESS					0x6D1E59
 #define VEHICLE_LOCK_CHECK_SIZE						2
+
+#define PLANE_DAMAGE_CHECK_INSTRUCTION_ADDRESS		0x6c2474
+#define PLANE_DAMAGE_CHECK_INSTRUCTION_SIZE			2
 
 #define CLASS_PLAYER								0x0086d168
 

@@ -93,14 +93,14 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, nullptr, &repellantTouch, "Repellant Touch", false),
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
-	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
+	new Cheat(&enableNoPlaneDamage, &disableNoPlaneDamage, &infiniteCarHealth, "Indestructible Vehicle", true),
+	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage", true),
 	new Cheat(nullptr, nullptr, &autoFlipCar, "Automatically Flip Car", true),
 	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike", true),
 	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo", true),
-	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage", true),
 	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle", true),
 	new Cheat(&installPropertyPurchaseDetour, &uninstallPropertyPurchaseDetour, nullptr, "Purchase Any Property", true),
-	new Cheat(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere", true),
+	new Cheat(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere BROKEN", false),
 	new Cheat(nullptr, nullptr, &dpadLeftToToggleCarLock, "D-pad Left Toggles Door Lock", true),
 	new Cheat(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
@@ -579,13 +579,11 @@ void installNoCarDamageDetour() {
 	BYTE detour[] = { 0xE9, 0, 0, 0, 0 }; //E9 for jmp
 	memcpy((LPVOID)(detour + 1), (LPVOID)&jumpDestination, sizeof(jumpDestination));
 	overwriteInstructions((void*)0x6A7650, detour, sizeof(detour), &originalCarDamageCall);
-	overwriteInstructions((void*)0x6cca2e, disablePlaneBlowUpInstructions, sizeof(disablePlaneBlowUpInstructions), &originalPlaneBlowUpInstructions);
 	//overwriteInstructions((void*)0x6C24B0, detour, sizeof(detour), &originalCarDamageCall);
 }
 
 void uninstallNoCarDamageDetour() {
 	restoreInstructions((void*)0x6A7650, &originalCarDamageCall, sizeof(originalCarDamageCall));
-	restoreInstructions((void*)0x6cca2e, &originalPlaneBlowUpInstructions, sizeof(originalPlaneBlowUpInstructions));
 	//restoreInstructions((void*)0x6C24B0, &originalCarDamageCall, sizeof(originalCarDamageCall));
 }
 
@@ -926,4 +924,20 @@ void repellantTouch() {
 		*vehicle.rotationalImpulse = { 0, 0, 0 };
 		//repelRestoreFrames = 1;
 	}
+}
+
+byte originalPlaneDamageCheckInstructions[PLANE_DAMAGE_CHECK_INSTRUCTION_SIZE];
+byte originalPlaneFireInstructions[5];
+void enableNoPlaneDamage() {
+	byte nops[2] = { 0x90, 0x90 };
+	byte jump[5] = { 0xe9, 0xc7, 0x00, 0x00, 0x00 };
+	overwriteInstructions((void*)PLANE_DAMAGE_CHECK_INSTRUCTION_ADDRESS, nops, sizeof(nops), originalPlaneDamageCheckInstructions);
+	overwriteInstructions((void*)0x6cc96f, jump, sizeof(jump), originalPlaneFireInstructions);
+	overwriteInstructions((void*)0x6cca2e, disablePlaneBlowUpInstructions, sizeof(disablePlaneBlowUpInstructions), &originalPlaneBlowUpInstructions);
+}
+
+void disableNoPlaneDamage() {
+	restoreInstructions((void*)PLANE_DAMAGE_CHECK_INSTRUCTION_ADDRESS, originalPlaneDamageCheckInstructions, sizeof(originalPlaneDamageCheckInstructions));
+	restoreInstructions((void*)0x6cc96f, originalPlaneFireInstructions, sizeof(originalPlaneFireInstructions));
+	restoreInstructions((void*)0x6cca2e, &originalPlaneBlowUpInstructions, sizeof(originalPlaneBlowUpInstructions));
 }
