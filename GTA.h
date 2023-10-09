@@ -25,6 +25,8 @@ struct Pedestrian {
 	Vector3d* position;
 	Vector3d* velocity;
 	Vector3d* rotationalVelocity;
+	Vector3d* impulse;
+	Vector3d* rotationalImpulse;
 	unsigned int* pTouch;
 	float* health;
 	float* armor;
@@ -42,6 +44,8 @@ struct Vehicle {
 	Vector3d* position;
 	Vector3d* velocity;
 	Vector3d* rotationalVelocity;
+	Vector3d* impulse;
+	Vector3d* rotationalImpulse;
 	unsigned short* id;
 	float* mass;
 	unsigned int* pTouch;
@@ -81,6 +85,8 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 // Found within ped/vehicle struct directly
 #define VELOCITY_VECTOR_STRUCT_OFFSET				0x44
 #define ROTATIONAL_VELOCITY_VECTOR_STRUCT_OFFSET	0x50
+#define IMPULSE_VECTOR_OFFSET						0x5C
+#define ROTATIONAL_IMPULSE_VECTOR_OFFSET			0x68
 
 #define PEDESTRIAN_HEALTH_OFFSET					0x540
 #define PEDESTRIAN_ARMOR_OFFSET						0x548
