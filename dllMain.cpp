@@ -93,13 +93,15 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
 	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
-	new Cheat(nullptr, nullptr, &autoFlipCar, "Auto Flip Car", true),
+	new Cheat(nullptr, nullptr, &autoFlipCar, "Automatically Flip Car", true),
 	new Cheat(&installFallOffBikeDetour, &uninstallFallOffBikeDetour, nullptr, "Never Fall Off Bike", true),
 	new Cheat(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo", true),
 	new Cheat(&installNoCarDamageDetour, &uninstallNoCarDamageDetour, nullptr, "No Cosmetic Damage", true),
 	new Cheat(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle", true),
 	new Cheat(&installPropertyPurchaseDetour, &uninstallPropertyPurchaseDetour, nullptr, "Purchase Any Property", true),
 	new Cheat(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere", true),
+	new Cheat(nullptr, nullptr, &dpadLeftToToggleCarLock, "D-pad Left Toggles Door Lock", true),
+	new Cheat(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
@@ -143,10 +145,6 @@ void hack() {
 	}
 	if (vehicleBaseAddress) {
 		hookVehicle(vehicleBaseAddress, &vehicle);
-		if (vehicleBaseAddress != vehicleBALastFrame) {
-			// in a new car
-			*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
-		}
 	} else {
 		vehicle.baseAddress = NULL;
 	}
@@ -403,6 +401,7 @@ void infiniteCarHealth() {
 		return;
 	}
 	*vehicle.health = 10000.f;
+	*vehicle.wheelState = { 0, 0, 0, 0};
 }
 
 #define HOVER_CAR_MAX_VELOCITY 3.0f
@@ -803,5 +802,31 @@ void holdRBForAirBrake() {
 			player.velocity->y *= .9f;
 			player.velocity->z *= .9f;
 		}
+	}
+}
+
+void dpadLeftToToggleCarLock() {
+	if (!vehicle.baseAddress) {
+		return;
+	}
+	if (!(buttonsHeld & XINPUT_GAMEPAD_LEFT_SHOULDER || buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER)) {
+		if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
+			if (*vehicle.lock == VEHICLE_LOCK_STATE_LOCKED) {
+				*vehicle.lock = VEHICLE_LOCK_STATE_UNLOCKED;
+				displayMessage("Doors unlocked", 0, 0, 0);
+			}
+			else {
+				*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
+				displayMessage("Doors locked", 0, 0, 0);
+			}
+		}
+	}
+}
+
+void autoLockCarDoors() {
+	if (vehicle.baseAddress && vehicle.baseAddress != vehicleBALastFrame) {
+		// in a new car
+		*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
+		displayMessage("Doors locked", 0, 0, 0);
 	}
 }

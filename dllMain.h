@@ -39,6 +39,8 @@ void propertyPurchaseDetour();
 void enableExploreAnywhere();
 void disableExploreAnywhere();
 void holdRBForAirBrake();
+void dpadLeftToToggleCarLock();
+void autoLockCarDoors();
 
 
 Vehicle* getCurrentVehicle();

@@ -10,6 +10,10 @@ struct VehicleName {
 	char str[14];
 };
 
+struct WheelState {
+	byte popped[4];
+};
+
 struct Pedestrian {
 	unsigned int baseAddress;
 	unsigned int objectClass;
@@ -45,6 +49,7 @@ struct Vehicle {
 	unsigned int* color;
 	unsigned int* lock;
 	float* tireRotation;
+	WheelState* wheelState;
 };
 
 struct WantedLevel {
@@ -89,6 +94,7 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_LOCK_OFFSET							0x4F8
 #define VEHICLE_LOCK_STATE_LOCKED					2
 #define VEHICLE_LOCK_STATE_UNLOCKED					1
+#define VEHICLE_WHEEL_STATE_OFFSET					0x5A5
 
 #define VEHICLE_PASSENGER_OFFSET					0x460
 #define VEHICLE_TIRE_ROTATION_OFFSET				0x898
