@@ -739,9 +739,11 @@ void bToPunt() {
 		vehicle.velocity->y += PUNT_STEP * vehicle.forward->y;
 		vehicle.velocity->z += PUNT_STEP * vehicle.forward->z;
 		*vehicle.mass *= 8;
-		afterPuntFrames = 2;
+		*vehicle.impulse = { 0, 0, 0 };
+		*vehicle.rotationalImpulse = { 0, 0, 0 };
+		afterPuntFrames = 1;
 	} else if (afterPuntFrames > 0) {
-		if (afterPuntFrames == 2) {
+		if (afterPuntFrames == 1) {
 			*vehicle.mass /= 8;
 		}
 		pposition.x += pvelocity.x;
@@ -753,6 +755,8 @@ void bToPunt() {
 		*vehicle.position = pposition;
 		*vehicle.velocity = pvelocity;
 		*vehicle.rotationalVelocity = protVelocity;
+		*vehicle.impulse = { 0, 0, 0 };
+		*vehicle.rotationalImpulse = { 0, 0, 0 };
 		afterPuntFrames--;
 	}
 }
@@ -918,6 +922,8 @@ void repellantTouch() {
 		*vehicle.position = rposition;
 		*vehicle.velocity = rvelocity;
 		*vehicle.rotationalVelocity = rrotVelocity;
-		repelRestoreFrames = 1;
+		*vehicle.impulse = { 0, 0, 0 };
+		*vehicle.rotationalImpulse = { 0, 0, 0 };
+		//repelRestoreFrames = 1;
 	}
 }
