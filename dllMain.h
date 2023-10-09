@@ -41,6 +41,7 @@ void disableExploreAnywhere();
 void holdRBForAirBrake();
 void dpadLeftToToggleCarLock();
 void autoLockCarDoors();
+void repellantTouch();
 
 
 Vehicle* getCurrentVehicle();

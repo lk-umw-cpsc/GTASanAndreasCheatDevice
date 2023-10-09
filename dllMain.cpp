@@ -90,6 +90,7 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, nullptr, &bToPunt, "Press B to Punt", false),
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 	new Cheat(nullptr, nullptr, &holdRBForAirBrake, "Hold RB for Air Brake", false),
+	new Cheat(nullptr, nullptr, &repellantTouch, "Repellant Touch", false),
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
 	new Cheat(nullptr, nullptr, &infiniteCarHealth, "Indestructible Vehicle", true),
@@ -827,5 +828,96 @@ void autoLockCarDoors() {
 		// in a new car
 		*vehicle.lock = VEHICLE_LOCK_STATE_LOCKED;
 		displayMessage("Doors locked", 0, 0, 0);
+	}
+}
+
+Vector3d rleft, rforward, rup, rposition, rvelocity, rrotVelocity;
+int repelRestoreFrames = 0;
+void repellantTouch() {
+	unsigned int touch;
+	Vector3d* playerPosition;
+	if (vehicle.baseAddress) {
+		touch = *vehicle.pTouch;
+		playerPosition = vehicle.position;
+	}
+	else {
+		touch = *player.pTouch;
+		playerPosition = player.position;
+		return;
+	}
+	if (repelRestoreFrames > 0) {
+		rposition.x += rvelocity.x;
+		rposition.y += rvelocity.y;
+		rposition.z += rvelocity.z;
+		*vehicle.left = rleft;
+		*vehicle.forward = rforward;
+		*vehicle.up = rup;
+		*vehicle.position = rposition;
+		*vehicle.velocity = rvelocity;
+		*vehicle.rotationalVelocity = rrotVelocity;
+		repelRestoreFrames--;
+	}
+	if (!touch) {
+		rleft = *vehicle.left;
+		rforward = *vehicle.forward;
+		rup = *vehicle.up;
+		rposition = *vehicle.position;
+		rvelocity = *vehicle.velocity;
+		rrotVelocity = *vehicle.rotationalVelocity;
+	}
+	else {
+		// bye bye
+		unsigned int cls = *(unsigned int*)touch;
+		Vector3d* touchedObjectVelocity = nullptr;
+		Vector3d* touchedObjectPosition = nullptr;
+		switch (cls) {
+		case CLASS_BICYCLE:
+		case CLASS_BOAT:
+		case CLASS_CAR:
+		case CLASS_HELICOPTER:
+		case CLASS_PLANE:
+		case CLASS_MOTORCYCLE:
+			Vehicle v;
+			hookVehicle(touch, &v);
+			touchedObjectVelocity = v.velocity;
+			touchedObjectPosition = v.position;
+			break;
+		default:
+			rleft = *vehicle.left;
+			rforward = *vehicle.forward;
+			rup = *vehicle.up;
+			rposition = *vehicle.position;
+			rvelocity = *vehicle.velocity;
+			rrotVelocity = *vehicle.rotationalVelocity;
+			return;
+		}
+		float dx = touchedObjectPosition->x - player.position->x;
+		float dy = touchedObjectPosition->y - player.position->y;
+		float dz = touchedObjectPosition->z - player.position->z;
+		float d = distance(dx, dy, dz);
+		dx /= d;
+		dy /= d;
+		dz /= d;
+		touchedObjectVelocity->x += dx * 3 + rvelocity.x;
+		touchedObjectVelocity->y += dy * 3 + rvelocity.y;
+		touchedObjectVelocity->z += dz * 3 + rvelocity.z;
+		touchedObjectPosition->x += dx * 1;
+		touchedObjectPosition->y += dy * 1;
+		touchedObjectPosition->z += dz * 1;
+		if (repelRestoreFrames > 0) {
+			repelRestoreFrames++;
+			return;
+		}
+		// pretend the collision didn't happen
+		rposition.x += rvelocity.x * 2;
+		rposition.y += rvelocity.y * 2;
+		rposition.z += rvelocity.z * 2;
+		*vehicle.left = rleft;
+		*vehicle.forward = rforward;
+		*vehicle.up = rup;
+		*vehicle.position = rposition;
+		*vehicle.velocity = rvelocity;
+		*vehicle.rotationalVelocity = rrotVelocity;
+		repelRestoreFrames = 1;
 	}
 }
