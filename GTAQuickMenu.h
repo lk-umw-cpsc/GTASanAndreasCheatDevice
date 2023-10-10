@@ -65,3 +65,11 @@ public:
 	string getText();
 	void onActivate();
 };
+
+class VehicleColorMenuItem : public QuickMenuItem {
+public:
+	string getText();
+	void onLeftInput();
+	void onRightInput();
+	int getCurrentVehicleColor();
+};

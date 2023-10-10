@@ -45,7 +45,8 @@ void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->rotationalImpulse = (Vector3d*)(baseAddress + ROTATIONAL_IMPULSE_VECTOR_OFFSET);
 	vehicleOut->pTouch = (unsigned int*)(baseAddress + TOUCH_POINTER_OFFSET);
 	vehicleOut->health = (float*)(baseAddress + VEHICLE_HEALTH_OFFSET);
-	vehicleOut->color = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_COLOR_OFFSET);
+	vehicleOut->color1 = reinterpret_cast<byte*>(baseAddress + VEHICLE_COLOR1_OFFSET);
+	vehicleOut->color2 = reinterpret_cast<byte*>(baseAddress + VEHICLE_COLOR2_OFFSET);
 	vehicleOut->lock = reinterpret_cast<unsigned int*>(baseAddress + VEHICLE_LOCK_OFFSET);
 	vehicleOut->id = reinterpret_cast<unsigned short*>(baseAddress + VEHICLE_ID_OFFSET);
 	vehicleOut->tireRotation = reinterpret_cast<float*>(baseAddress + VEHICLE_TIRE_ROTATION_OFFSET);

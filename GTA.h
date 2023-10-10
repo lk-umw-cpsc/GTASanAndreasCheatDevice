@@ -50,10 +50,11 @@ struct Vehicle {
 	float* mass;
 	unsigned int* pTouch;
 	float* health;
-	unsigned int* color;
 	unsigned int* lock;
 	float* tireRotation;
 	WheelState* wheelState;
+	byte* color1;
+	byte* color2;
 };
 
 struct WantedLevel {
@@ -96,11 +97,16 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_MASS_OFFSET							0x8C
 #define VEHICLE_HEALTH_OFFSET						0x4C0
 #define VEHICLE_DRIVER_POINTER_OFFSET				0x460
-#define VEHICLE_COLOR_OFFSET						0x434
+#define VEHICLE_COLOR1_OFFSET						0x434
+#define VEHICLE_COLOR2_OFFSET						0x435
 #define VEHICLE_LOCK_OFFSET							0x4F8
 #define VEHICLE_LOCK_STATE_LOCKED					2
 #define VEHICLE_LOCK_STATE_UNLOCKED					1
 #define VEHICLE_WHEEL_STATE_OFFSET					0x5A5
+#define VEHICLE_WHEEL_SIZE_OFFSET					0x458
+// 0x898 tire?
+// 0x8cc bounce factor?
+// 0x24 ??? pointer to something that changes as car's color changes
 
 #define PLANE_DAMAGE_OFFSET							0x5B4 //DWORD
 

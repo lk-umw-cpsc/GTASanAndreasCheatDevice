@@ -44,6 +44,7 @@ void autoLockCarDoors();
 void repellantTouch();
 void enableNoPlaneDamage();
 void disableNoPlaneDamage();
+void discoMode();
 
 Vehicle* getCurrentVehicle();
 Pedestrian* getPlayer();

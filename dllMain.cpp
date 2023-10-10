@@ -75,6 +75,7 @@ Vehicle vehicle;
 QuickMenuItem* menuItems[] = {
 	new SpawnCarMenuItem(506),
 	new RepairVehicleMenuItem(),
+	new VehicleColorMenuItem(),
 	new QuickTakeOffMenuItem(),
 	new StepForwardMenuItem(),
 	new StepUpMenuItem(),
@@ -103,6 +104,7 @@ Cheat* cheats[] = {
 	new Cheat(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere BROKEN", false),
 	new Cheat(nullptr, nullptr, &dpadLeftToToggleCarLock, "D-pad Left Toggles Door Lock", true),
 	new Cheat(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
+	new Cheat(nullptr, nullptr, &discoMode, "Disco Mode", false)
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
@@ -951,4 +953,13 @@ void disableNoPlaneDamage() {
 	restoreInstructions((void*)PLANE_DAMAGE_CHECK_INSTRUCTION_ADDRESS, originalPlaneDamageCheckInstructions, sizeof(originalPlaneDamageCheckInstructions));
 	restoreInstructions((void*)0x6cc96f, originalPlaneFireInstructions, sizeof(originalPlaneFireInstructions));
 	restoreInstructions((void*)0x6cca2e, &originalPlaneBlowUpInstructions, sizeof(originalPlaneBlowUpInstructions));
+}
+
+void discoMode() {
+	if (!vehicle.baseAddress) {
+		return;
+	}
+	byte randomColor = rand() % 186 + 1;
+	*vehicle.color1 = randomColor;
+	*vehicle.color2 = randomColor;
 }

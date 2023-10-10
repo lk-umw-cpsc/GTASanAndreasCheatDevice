@@ -254,3 +254,41 @@ void QuickTakeOffMenuItem::onActivate() {
 string QuickTakeOffMenuItem::getText() {
 	return "Quick Take Off";
 }
+
+int VehicleColorMenuItem::getCurrentVehicleColor() {
+	Vehicle* vehicle = getCurrentVehicle();
+	if (vehicle->baseAddress) {
+		return *vehicle->color1;
+	}
+	return -1;
+}
+
+void VehicleColorMenuItem::onLeftInput() {
+	Vehicle* vehicle = getCurrentVehicle();
+	if (!vehicle->baseAddress) {
+		return;
+	}
+	byte currentColor = *vehicle->color1;
+	currentColor--;
+	*vehicle->color1 = currentColor;
+	*vehicle->color2 = currentColor;
+}
+
+void VehicleColorMenuItem::onRightInput() {
+	Vehicle* vehicle = getCurrentVehicle();
+	if (!vehicle->baseAddress) {
+		return;
+	}
+	byte currentColor = *vehicle->color1;
+	currentColor++;
+	*vehicle->color1 = currentColor;
+	*vehicle->color2 = currentColor;
+}
+
+string VehicleColorMenuItem::getText() {
+	int color = getCurrentVehicleColor();
+	if (color < 0) {
+		return "(Enter vehicle to change color)";
+	}
+	return "Vehicle color " + to_string(color);
+}
