@@ -92,6 +92,7 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 	new Cheat(nullptr, nullptr, &holdRBForAirBrake, "Hold RB for Air Brake", false),
 	new Cheat(nullptr, nullptr, &repellantTouch, "Repellant Touch", false),
+	new Cheat(nullptr, nullptr, &infiniteNos, "Infinite NOS", false),
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
 	new Cheat(&enableNoPlaneDamage, &disableNoPlaneDamage, &infiniteCarHealth, "Indestructible Vehicle", true),
@@ -104,7 +105,7 @@ Cheat* cheats[] = {
 	new Cheat(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere BROKEN", false),
 	new Cheat(nullptr, nullptr, &dpadLeftToToggleCarLock, "D-pad Left Toggles Door Lock", true),
 	new Cheat(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
-	new Cheat(nullptr, nullptr, &discoMode, "Disco Mode", false)
+	new Cheat(nullptr, nullptr, &discoMode, "Disco Mode", false),
 	//new Cheat(&enableNoPlaneExplosion, &disableNoPlaneExplosion, nullptr, "No Plane Explosion"),
 };
 const int numCheats = sizeof(cheats) / sizeof(Cheat*);
@@ -962,4 +963,14 @@ void discoMode() {
 	byte randomColor = rand() % 186 + 1;
 	*vehicle.color1 = randomColor;
 	*vehicle.color2 = randomColor;
+}
+
+void infiniteNos() {
+	if (!vehicle.baseAddress || vehicle.objectClass != CLASS_CAR) {
+		return;
+	}
+	*vehicle.nosCount = 1;
+	if (*vehicle.nosAmount >= 0.f) {
+		*vehicle.nosAmount = 1.f;
+	}
 }

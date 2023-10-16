@@ -52,6 +52,8 @@ struct Vehicle {
 	float* health;
 	unsigned int* lock;
 	float* tireRotation;
+	byte* nosCount;
+	float* nosAmount;
 	WheelState* wheelState;
 	byte* color1;
 	byte* color2;
@@ -104,6 +106,9 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_LOCK_STATE_UNLOCKED					1
 #define VEHICLE_WHEEL_STATE_OFFSET					0x5A5
 #define VEHICLE_WHEEL_SIZE_OFFSET					0x458
+#define VEHICLE_NOS_COUNT_OFFSET					0x48A
+#define VEHICLE_NOS_AMOUNT_OFFSET					0x8A4
+
 // 0x898 tire?
 // 0x8cc bounce factor?
 // 0x24 ??? pointer to something that changes as car's color changes
