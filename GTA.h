@@ -57,6 +57,7 @@ struct Vehicle {
 	WheelState* wheelState;
 	byte* color1;
 	byte* color2;
+	byte* mods;
 };
 
 struct WantedLevel {
@@ -106,8 +107,11 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_LOCK_STATE_UNLOCKED					1
 #define VEHICLE_WHEEL_STATE_OFFSET					0x5A5
 #define VEHICLE_WHEEL_SIZE_OFFSET					0x458
-#define VEHICLE_NOS_COUNT_OFFSET					0x48A
+#define VEHICLE_MOD_OFFSET							0x38E
+#define VEHICLE_NOS_COUNT_OFFSET					0x48A // +0x38E NOS... OR 0x20... +0x43A 0x03F2
 #define VEHICLE_NOS_AMOUNT_OFFSET					0x8A4
+
+#define NOS_ENABLED									0x08
 
 // 0x898 tire?
 // 0x8cc bounce factor?

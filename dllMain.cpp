@@ -969,6 +969,7 @@ void infiniteNos() {
 	if (!vehicle.baseAddress || vehicle.objectClass != CLASS_CAR) {
 		return;
 	}
+	*vehicle.mods |= NOS_ENABLED;
 	*vehicle.nosCount = 1;
 	if (*vehicle.nosAmount >= 0.f) {
 		*vehicle.nosAmount = 1.f;

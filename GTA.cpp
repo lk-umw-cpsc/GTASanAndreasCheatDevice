@@ -52,6 +52,7 @@ void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->tireRotation = reinterpret_cast<float*>(baseAddress + VEHICLE_TIRE_ROTATION_OFFSET);
 	vehicleOut->mass = (float*)(baseAddress + VEHICLE_MASS_OFFSET);
 	vehicleOut->wheelState = (WheelState*)(baseAddress + VEHICLE_WHEEL_STATE_OFFSET);
+	vehicleOut->mods = (byte*)(baseAddress + VEHICLE_MOD_OFFSET);
 	vehicleOut->nosCount = (byte*)(baseAddress + VEHICLE_NOS_COUNT_OFFSET);
 	vehicleOut->nosAmount = (float*)(baseAddress + VEHICLE_NOS_AMOUNT_OFFSET);
 }
