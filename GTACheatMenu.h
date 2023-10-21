@@ -1,7 +1,7 @@
 #pragma once
 #include <d3dx9core.h>
 
-#include "QuickMenu.h"
+#include "CheatMenu.h"
 #include "dllMain.h"
 
 #define MENU_NEW_LINE "~N~"
@@ -12,13 +12,13 @@
 #define MENU_SELECTED_TEXT_COLOR	D3DCOLOR_ARGB(255, 203, 99, 255)
 #define MENU_BACKGROUND_COLOR		D3DCOLOR_XRGB(32, 32, 32)
 
-class GTASAQuickMenu : public QuickMenu {
+class GTASACheatMenu : public CheatMenu {
 public:
-	GTASAQuickMenu(QuickMenuItem** menuItems, int numMenuItems);
+	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems);
 	void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite);
 };
 
-class SpawnCarMenuItem : public QuickMenuItem {
+class SpawnCarMenuItem : public CheatMenuItem {
 private:
 	int selectedCarID;
 public:
@@ -30,43 +30,43 @@ public:
 	string getSelectedVehicleName();
 };
 
-class RepairVehicleMenuItem : public QuickMenuItem {
+class RepairVehicleMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class SelfDestructMenuItem : public QuickMenuItem {
+class SelfDestructMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class StepForwardMenuItem : public QuickMenuItem {
+class StepForwardMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class StepUpMenuItem : public QuickMenuItem {
+class StepUpMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class StepDownMenuItem : public QuickMenuItem {
+class StepDownMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class QuickTakeOffMenuItem : public QuickMenuItem {
+class QuickTakeOffMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class VehicleColorMenuItem : public QuickMenuItem {
+class VehicleColorMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onLeftInput();
@@ -74,19 +74,19 @@ public:
 	int getCurrentVehicleColor();
 };
 
-class KillEveryoneMenuItem : public QuickMenuItem {
+class KillEveryoneMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class BlowUpAllVehicles : public QuickMenuItem {
+class BlowUpAllVehicles : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
 };
 
-class ChangeGravityMenuItem : public QuickMenuItem {
+class ChangeGravityMenuItem : public CheatMenuItem {
 private:
 	float defaultGravity;
 public:

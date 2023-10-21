@@ -1,14 +1,14 @@
 #include "GTA.h"
-#include "GTAQuickMenu.h"
+#include "GTACheatMenu.h"
 #include <string>
 #include <sstream>
 
 using namespace std;
 
-GTASAQuickMenu::GTASAQuickMenu(QuickMenuItem** menuItems, int numMenuItems) : QuickMenu(menuItems, numMenuItems) {
+GTASACheatMenu::GTASACheatMenu(QuickMenuItem** menuItems, int numMenuItems) : CheatMenu(menuItems, numMenuItems) {
 }
 
-void GTASAQuickMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
+void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
 	if (numMenuItems == 0) {
 		return;
 	}
@@ -17,7 +17,7 @@ void GTASAQuickMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
 	int fontSize, lineGap;
 	//D3DXSPRITE_BILLBOARD | 
-	bool selectedCheat;
+	bool drawingSelectedCheat;
 	D3DCOLOR chosenColor;
 	RECT bounds = { 0, 0, 0, 0 };
 	int widest = 0;
@@ -37,8 +37,8 @@ void GTASAQuickMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
 	
 	for (int i = 0; i < numMenuItems; i++) {
-		selectedCheat = i == selectedMenuItemIndex;
-		if (selectedCheat) {
+		drawingSelectedCheat = i == selectedMenuItemIndex;
+		if (drawingSelectedCheat) {
 			chosenColor = MENU_SELECTED_TEXT_COLOR;
 		}
 		else {

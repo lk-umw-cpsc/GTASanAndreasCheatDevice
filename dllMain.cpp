@@ -10,8 +10,8 @@
 #include "Cheat.h"
 #include "dllMain.h"
 #include "Memory.h"
-#include "QuickMenu.h"
-#include "GTAQuickMenu.h"
+#include "CheatMenu.h"
+#include "GTACheatMenu.h"
 
 using namespace std;
 
@@ -76,7 +76,7 @@ WantedLevel wantedLevel;
 Pedestrian player;
 Vehicle vehicle;
 
-QuickMenuItem* menuItems[] = {
+CheatMenuItem* menuItems[] = {
 	new SpawnCarMenuItem(506),
 	new RepairVehicleMenuItem(),
 	new KillEveryoneMenuItem(),
@@ -90,7 +90,7 @@ QuickMenuItem* menuItems[] = {
 	new SelfDestructMenuItem()
 };
 
-GTASAQuickMenu quickMenu = GTASAQuickMenu(menuItems, sizeof(menuItems) / sizeof(QuickMenuItem*));
+GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(QuickMenuItem*));
 
 Cheat* cheats[] = {
 	// onEnable, onDisable, onFrame
