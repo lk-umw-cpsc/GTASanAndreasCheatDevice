@@ -95,5 +95,4 @@ public:
 	void onLeftInput();
 	void onRightInput();
 	void onActivate();
-	int getCurrentVehicleColor();
 };

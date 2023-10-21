@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+typedef void(__thiscall* BlowUpFunction)(DWORD __this, DWORD cause, DWORD unknownNull);
+typedef void(__thiscall* voidObjectFunction)(DWORD __this);
+
 struct Vector3d {
 	float x, y, z;
 };
@@ -166,8 +169,6 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_OBJECT_SIZE							0xA18
 
 #define GRAVITY_ADDRESS								0x863984
-
-typedef void(__thiscall* BlowUpFunction)(DWORD __this, DWORD cause, DWORD unknownNull);
 
 extern const unsigned int* const pPlayerPedBaseAddress;
 extern const unsigned int* const pPlayerVehicleBaseAddress;

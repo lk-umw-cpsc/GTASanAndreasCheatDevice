@@ -4,25 +4,22 @@
 
 using namespace std;
 
-void doNothing() {
-	
-}
 
 string CheatMenuItem::getText() {
 	return "";
 }
 
-// void MenuItem::onLeftInput() {
+void CheatMenuItem::onLeftInput() {
 
-// }
+}
 
-// void MenuItem::onRightInput() {
+void CheatMenuItem::onRightInput() {
 
-// }
+}
 
-// void MenuItem::onActivate() {
+void CheatMenuItem::onActivate() {
 
-// }
+}
 
 CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems) {
 	this->menuItems = menuItems;
@@ -59,11 +56,20 @@ void CheatMenu::activateSelectedMenuItem() {
 	selectedMenuItem->onActivate();
 }
 
-ActiveCheatMenuItem::ActiveCheatMenuItem(string name, voidFunction onEnable, voidFunction onDisable, voidFunction onFrame) {
+CheatMenuItem* CheatMenu::getMenuItem(int index) {
+	return menuItems[index];
+}
+
+
+ActiveCheatMenuItem::ActiveCheatMenuItem(voidFunction onEnable, voidFunction onDisable, voidFunction onFrame, string name, bool enabled) {
 	this->onEnable = onEnable;
 	this->onDisable = onDisable;
 	this->onFrame = onFrame;
 	this->name = name;
+	this->enabled = enabled;
+	if (enabled && onEnable) {
+		onEnable();
+	}
 }
 
 void ActiveCheatMenuItem::toggle() {
@@ -75,16 +81,20 @@ void ActiveCheatMenuItem::toggle() {
 	}
 }
 
-void ActiveCheatMenuItem::setEnabled(bool enabled) {
-	bool oldState = this->enabled;
-	this->enabled = enabled;
-	if (oldState != enabled) {
-		if (enabled && onEnable) {
+void ActiveCheatMenuItem::setEnabled(bool newState) {
+	bool oldState = enabled;
+	enabled = newState;
+	if (oldState != newState) {
+		if (newState && onEnable) {
 			onEnable();
-		} else if (!enabled && onDisable) {
+		} else if (!newState && onDisable) {
 			onDisable();
 		}
 	}
+}
+
+bool ActiveCheatMenuItem::isEnabled() {
+	return enabled;
 }
 
 void ActiveCheatMenuItem::onLeftInput() {
@@ -95,6 +105,17 @@ void ActiveCheatMenuItem::onRightInput() {
 	toggle();
 }
 
-void ActiveCheatMenuItem::onLeftActivate() {
+void ActiveCheatMenuItem::onActivate() {
 	toggle();
+}
+
+string ActiveCheatMenuItem::getText() {
+	string stateText;
+	if (enabled) {
+		stateText = " ON";
+	}
+	else {
+		stateText = " OFF";
+	}
+	return name + stateText;
 }

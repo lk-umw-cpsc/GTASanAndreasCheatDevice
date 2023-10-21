@@ -5,7 +5,7 @@
 
 using namespace std;
 
-GTASACheatMenu::GTASACheatMenu(QuickMenuItem** menuItems, int numMenuItems) : CheatMenu(menuItems, numMenuItems) {
+GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems) : CheatMenu(menuItems, numMenuItems) {
 }
 
 void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
@@ -131,16 +131,13 @@ string RepairVehicleMenuItem::getText()
 
 void RepairVehicleMenuItem::onActivate()
 {
-	Vehicle* vehicle = getCurrentVehicle();
-	unsigned int vehicleBaseAddress = vehicle->baseAddress;
-	if (vehicleBaseAddress == 0) {
+	if (!vehicle.baseAddress) {
 		return;
 	}
-	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
+	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
 	unsigned int pRepairVehicle = (*vtable)[50];
-	void(*repairVehicle)() = (void(*)())(pRepairVehicle);
-	__asm { mov ecx, [vehicleBaseAddress] }
-	repairVehicle();
+	voidObjectFunction repairVehicle = (voidObjectFunction)pRepairVehicle;
+	repairVehicle(vehicle.baseAddress);
 }
 
 string SelfDestructMenuItem::getText() {
@@ -148,35 +145,31 @@ string SelfDestructMenuItem::getText() {
 }
 
 void SelfDestructMenuItem::onActivate() {
-	Vehicle* vehicle = getCurrentVehicle();
-	unsigned int vehicleBaseAddress = vehicle->baseAddress;
-	if (!vehicleBaseAddress) {
+	if (!vehicle.baseAddress) {
 		return;
 	}
-	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
+	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
 	unsigned int pBlowUpVehicle = (*vtable)[41];
 	BlowUpFunction blowUpVehicle = (BlowUpFunction)pBlowUpVehicle;
-	blowUpVehicle(vehicleBaseAddress, 0, 0);
+	blowUpVehicle(vehicle.baseAddress, 0, 0);
 }
 
 void StepForwardMenuItem::onActivate() {
-	Pedestrian* player = getPlayer();
-	Vehicle* vehicle = getCurrentVehicle();
-	if (vehicle->baseAddress) {
-		vehicle->position->x += vehicle->forward->x * 5;
-		vehicle->position->y += vehicle->forward->y * 5;
-		vehicle->position->z += vehicle->forward->z * 5;
-		vehicle->velocity->x = 0;
-		vehicle->velocity->y = 0;
-		vehicle->velocity->z = 0;
+	if (vehicle.baseAddress) {
+		vehicle.position->x += vehicle.forward->x * 5;
+		vehicle.position->y += vehicle.forward->y * 5;
+		vehicle.position->z += vehicle.forward->z * 5;
+		vehicle.velocity->x = 0;
+		vehicle.velocity->y = 0;
+		vehicle.velocity->z = 0;
 	}
 	else {
-		player->position->x += player->forward->x * 5;
-		player->position->y += player->forward->y * 5;
-		player->position->z += player->forward->z * 5;
-		player->velocity->x = 0;
-		player->velocity->y = 0;
-		player->velocity->z = 0;
+		player.position->x += player.forward->x * 5;
+		player.position->y += player.forward->y * 5;
+		player.position->z += player.forward->z * 5;
+		player.velocity->x = 0;
+		player.velocity->y = 0;
+		player.velocity->z = 0;
 	}
 }
 
@@ -185,23 +178,21 @@ string StepForwardMenuItem::getText() {
 }
 
 void StepUpMenuItem::onActivate() {
-	Pedestrian* player = getPlayer();
-	Vehicle* vehicle = getCurrentVehicle();
-	if (vehicle->baseAddress) {
-		vehicle->position->x += vehicle->up->x * 5;
-		vehicle->position->y += vehicle->up->y * 5;
-		vehicle->position->z += vehicle->up->z * 5;
-		vehicle->velocity->x = 0;
-		vehicle->velocity->y = 0;
-		vehicle->velocity->z = 0;
+	if (vehicle.baseAddress) {
+		vehicle.position->x += vehicle.up->x * 5;
+		vehicle.position->y += vehicle.up->y * 5;
+		vehicle.position->z += vehicle.up->z * 5;
+		vehicle.velocity->x = 0;
+		vehicle.velocity->y = 0;
+		vehicle.velocity->z = 0;
 	}
 	else {
-		player->position->x += player->up->x * 5;
-		player->position->y += player->up->y * 5;
-		player->position->z += player->up->z * 5;
-		player->velocity->x = 0;
-		player->velocity->y = 0;
-		player->velocity->z = 0;
+		player.position->x += player.up->x * 5;
+		player.position->y += player.up->y * 5;
+		player.position->z += player.up->z * 5;
+		player.velocity->x = 0;
+		player.velocity->y = 0;
+		player.velocity->z = 0;
 	}
 }
 
@@ -210,23 +201,21 @@ string StepUpMenuItem::getText() {
 }
 
 void StepDownMenuItem::onActivate() {
-	Pedestrian* player = getPlayer();
-	Vehicle* vehicle = getCurrentVehicle();
-	if (vehicle->baseAddress) {
-		vehicle->position->x -= vehicle->up->x * 5;
-		vehicle->position->y -= vehicle->up->y * 5;
-		vehicle->position->z -= vehicle->up->z * 5;
-		vehicle->velocity->x = 0;
-		vehicle->velocity->y = 0;
-		vehicle->velocity->z = 0;
+	if (vehicle.baseAddress) {
+		vehicle.position->x -= vehicle.up->x * 5;
+		vehicle.position->y -= vehicle.up->y * 5;
+		vehicle.position->z -= vehicle.up->z * 5;
+		vehicle.velocity->x = 0;
+		vehicle.velocity->y = 0;
+		vehicle.velocity->z = 0;
 	}
 	else {
-		player->position->x -= player->up->x * 5;
-		player->position->y -= player->up->y * 5;
-		player->position->z -= player->up->z * 5;
-		player->velocity->x = 0;
-		player->velocity->y = 0;
-		player->velocity->z = 0;
+		player.position->x -= player.up->x * 5;
+		player.position->y -= player.up->y * 5;
+		player.position->z -= player.up->z * 5;
+		player.velocity->x = 0;
+		player.velocity->y = 0;
+		player.velocity->z = 0;
 	}
 }
 
@@ -235,19 +224,17 @@ string StepDownMenuItem::getText() {
 }
 
 void QuickTakeOffMenuItem::onActivate() {
-	Pedestrian* player = getPlayer();
-	Vehicle* vehicle = getCurrentVehicle();
-	if (vehicle->baseAddress) {
-		vehicle->position->z += 250;
-		vehicle->velocity->x += vehicle->forward->x * 5;
-		vehicle->velocity->y += vehicle->forward->y * 5;
-		vehicle->velocity->z += vehicle->forward->z * 5;
+	if (vehicle.baseAddress) {
+		vehicle.position->z += 250;
+		vehicle.velocity->x += vehicle.forward->x * 5;
+		vehicle.velocity->y += vehicle.forward->y * 5;
+		vehicle.velocity->z += vehicle.forward->z * 5;
 	}
 	else {
-		player->position->z += 250;
-		player->velocity->x += player->forward->x * 5;
-		player->velocity->y += player->forward->y * 5;
-		player->velocity->z += player->forward->z * 5;
+		player.position->z += 250;
+		player.velocity->x += player.forward->x * 5;
+		player.velocity->y += player.forward->y * 5;
+		player.velocity->z += player.forward->z * 5;
 	}
 }
 
@@ -256,33 +243,30 @@ string QuickTakeOffMenuItem::getText() {
 }
 
 int VehicleColorMenuItem::getCurrentVehicleColor() {
-	Vehicle* vehicle = getCurrentVehicle();
-	if (vehicle->baseAddress) {
-		return *vehicle->color1;
+	if (vehicle.baseAddress) {
+		return *vehicle.color1;
 	}
 	return -1;
 }
 
 void VehicleColorMenuItem::onLeftInput() {
-	Vehicle* vehicle = getCurrentVehicle();
-	if (!vehicle->baseAddress) {
+	if (!vehicle.baseAddress) {
 		return;
 	}
-	byte currentColor = *vehicle->color1;
+	byte currentColor = *vehicle.color1;
 	currentColor--;
-	*vehicle->color1 = currentColor;
-	*vehicle->color2 = currentColor;
+	*vehicle.color1 = currentColor;
+	*vehicle.color2 = currentColor;
 }
 
 void VehicleColorMenuItem::onRightInput() {
-	Vehicle* vehicle = getCurrentVehicle();
-	if (!vehicle->baseAddress) {
+	if (!vehicle.baseAddress) {
 		return;
 	}
-	byte currentColor = *vehicle->color1;
+	byte currentColor = *vehicle.color1;
 	currentColor++;
-	*vehicle->color1 = currentColor;
-	*vehicle->color2 = currentColor;
+	*vehicle.color1 = currentColor;
+	*vehicle.color2 = currentColor;
 }
 
 string VehicleColorMenuItem::getText() {
@@ -299,7 +283,7 @@ string KillEveryoneMenuItem::getText() {
 
 void KillEveryoneMenuItem::onActivate() {
 	const EntityTable table = **ppPedestrianTable;
-	unsigned int numSlots = table.numSlots;
+	int numSlots = table.numSlots;
 	unsigned int pedestrianArrayBase = table.arrayBaseAddress;
 	byte* slotInUse = table.slotInUse;
 	for (int i = 1; i < numSlots; i++) {
@@ -316,10 +300,10 @@ string BlowUpAllVehicles::getText() {
 
 void BlowUpAllVehicles::onActivate() {
 	const EntityTable table = **ppVehicleTable;
-	unsigned int numSlots = table.numSlots;
+	int numSlots = table.numSlots;
 	unsigned int arrayBaseAddress = table.arrayBaseAddress;
 	byte* slotInUse = table.slotInUse;
-	unsigned int playerCarBaseAddress = getCurrentVehicle()->baseAddress;
+	unsigned int playerCarBaseAddress = vehicle.baseAddress;
 	for (int i = 0; i < numSlots; i++) {
 		if (slotInUse[i] >> 7) {
 			continue;

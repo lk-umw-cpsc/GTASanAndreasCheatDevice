@@ -1,20 +1,17 @@
 #pragma once
 #include <string>
-
 #include <d3dx9core.h>
 
 using namespace std;
-
-void doNothing();
 
 typedef void(*voidFunction)();
 
 class CheatMenuItem {
 public:
 	virtual string getText();
-	virtual void onLeftInput() = doNothing;
-	virtual void onRightInput() = doNothing;
-	virtual void onActivate() = doNothing;
+	virtual void onLeftInput();
+	virtual void onRightInput();
+	virtual void onActivate();
 };
 
 class ActiveCheatMenuItem : public CheatMenuItem {
@@ -25,15 +22,20 @@ public:
 	voidFunction onEnable;
 	voidFunction onDisable;
 	voidFunction onFrame;
-	ActiveCheatMenuItem(string name, void (*onEnable)(), void (*onDisable)(), void (*onFrame)());
+	ActiveCheatMenuItem(voidFunction onEnable, voidFunction onDisable, voidFunction onFrame, string name, bool enabled);
 	void toggle();
 	void setEnabled(bool enabled);
-}
+	bool isEnabled();
+	string getText();
+	void onLeftInput();
+	void onRightInput();
+	void onActivate();
+};
 
 class CheatMenu {
 protected:
-	CheatMenu** menuItems;
-	CheatMenu* selectedMenuItem;
+	CheatMenuItem** menuItems;
+	CheatMenuItem* selectedMenuItem;
 	int numMenuItems;
 	int selectedMenuItemIndex;
 public:
@@ -44,4 +46,5 @@ public:
 	void selectedMenuItemLeft();
 	void selectedMenuItemRight();
 	void activateSelectedMenuItem();
+	CheatMenuItem* getMenuItem(int index);
 };

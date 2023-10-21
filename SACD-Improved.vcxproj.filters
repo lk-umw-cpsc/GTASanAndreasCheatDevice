@@ -27,10 +27,13 @@
     <ClCompile Include="Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QuickMenu.cpp">
+    <ClCompile Include="CheatMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GTAQuickMenu.cpp">
+    <ClCompile Include="GTACheatMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GTASACheats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,11 +50,14 @@
     <ClInclude Include="Memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QuickMenu.h">
+    <ClInclude Include="CheatMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GTAQuickMenu.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="GTACheatMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GTASACheats.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

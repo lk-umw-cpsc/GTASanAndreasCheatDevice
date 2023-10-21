@@ -145,20 +145,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CheatMenu.cpp" />
     <ClCompile Include="dllMain.cpp" />
     <ClCompile Include="Cheat.cpp" />
     <ClCompile Include="GTA.cpp" />
-    <ClCompile Include="GTAQuickMenu.cpp" />
+    <ClCompile Include="GTACheatMenu.cpp" />
+    <ClCompile Include="GTASACheats.cpp" />
     <ClCompile Include="Memory.cpp" />
-    <ClCompile Include="QuickMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cheat.h" />
+    <ClInclude Include="CheatMenu.h" />
     <ClInclude Include="dllMain.h" />
     <ClInclude Include="GTA.h" />
-    <ClInclude Include="GTAQuickMenu.h" />
+    <ClInclude Include="GTACheatMenu.h" />
+    <ClInclude Include="GTASACheats.h" />
     <ClInclude Include="Memory.h" />
-    <ClInclude Include="QuickMenu.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
