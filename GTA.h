@@ -165,6 +165,8 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 #define VEHICLE_TABLE_POINTER_ADDRESS				0xB74494
 #define VEHICLE_OBJECT_SIZE							0xA18
 
+#define GRAVITY_ADDRESS								0x863984
+
 typedef void(__thiscall* BlowUpFunction)(DWORD __this, DWORD cause, DWORD unknownNull);
 
 extern const unsigned int* const pPlayerPedBaseAddress;
@@ -173,6 +175,7 @@ extern const unsigned int* const pWantedLevelBaseAddress;
 extern EntityTable** ppPedestrianTable;
 extern EntityTable** ppVehicleTable;
 extern byte* const pNoCrimesFlag;
+extern float* gravity;
 
 extern void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int);
 extern void (*spawnCar)(unsigned short);

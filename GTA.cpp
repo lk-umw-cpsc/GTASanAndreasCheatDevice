@@ -71,6 +71,7 @@ const unsigned int* const pWantedLevelBaseAddress = (unsigned int*)WANTED_LEVEL_
 EntityTable** ppPedestrianTable = (EntityTable**)PEDESTRIAN_TABLE_POINTER_ADDRESS;
 EntityTable** ppVehicleTable = (EntityTable**)VEHICLE_TABLE_POINTER_ADDRESS;
 byte* const pNoCrimesFlag = (byte*)NO_CRIMES_FLAG_ADDRESS;
+float* gravity = (float*)(GRAVITY_ADDRESS);
 
 void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int) = (void(*)(const char*, unsigned int, unsigned int, unsigned int))DISPLAY_MESSAGE_FUNCTION_ADDRESS;
 void (*spawnCar)(unsigned short) = (void(*)(unsigned short))0x43A0B0;

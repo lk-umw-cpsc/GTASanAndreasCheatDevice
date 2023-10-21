@@ -1,6 +1,7 @@
 #include "GTA.h"
 #include "GTAQuickMenu.h"
 #include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -332,4 +333,29 @@ void BlowUpAllVehicles::onActivate() {
 		BlowUpFunction blowUpVehicle = (BlowUpFunction)(pBlowUpVehicle);
 		blowUpVehicle(baseAddress, 0, 0);
 	}
+}
+
+ChangeGravityMenuItem::ChangeGravityMenuItem() {
+	defaultGravity = *gravity;
+	DWORD oldProtections;
+	VirtualProtect(gravity, sizeof(float), PAGE_READWRITE, &oldProtections);
+}
+
+string ChangeGravityMenuItem::getText() {
+	ostringstream out;
+	out.precision(3);
+	out << fixed << *gravity;
+	return "Gravity: " + move(out).str() + " (A to reset)";
+}
+
+void ChangeGravityMenuItem::onLeftInput() {
+	*gravity -= 0.001f;
+}
+
+void ChangeGravityMenuItem::onRightInput() {
+	*gravity += 0.001f;
+}
+
+void ChangeGravityMenuItem::onActivate() {
+	*gravity = defaultGravity;
 }

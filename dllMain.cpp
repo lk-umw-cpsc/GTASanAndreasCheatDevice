@@ -28,6 +28,10 @@ $(DXSDK_DIR)Lib\x86
 	Player jump size (Moon jump) +0x8c, lower = higher jump
 	Vehicle mass
 	Car speed
+
+	Disable collision
+	Fire rockets/drop grenades from car
+
 */
 
 // derived from 5-byte JMP far opcode, -1 because of push esi created by Visual Studio
@@ -79,6 +83,7 @@ QuickMenuItem* menuItems[] = {
 	new BlowUpAllVehicles(),
 	new VehicleColorMenuItem(),
 	new QuickTakeOffMenuItem(),
+	new ChangeGravityMenuItem(),
 	new StepForwardMenuItem(),
 	new StepUpMenuItem(),
 	new StepDownMenuItem(),

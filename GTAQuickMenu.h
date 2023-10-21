@@ -85,3 +85,15 @@ public:
 	string getText();
 	void onActivate();
 };
+
+class ChangeGravityMenuItem : public QuickMenuItem {
+private:
+	float defaultGravity;
+public:
+	ChangeGravityMenuItem();
+	string getText();
+	void onLeftInput();
+	void onRightInput();
+	void onActivate();
+	int getCurrentVehicleColor();
+};
