@@ -68,6 +68,8 @@ void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut) {
 const unsigned int* const pPlayerPedBaseAddress = (unsigned int*)PLAYER_PEDESTRIAN_STRUCT_POINTER;
 const unsigned int* const pPlayerVehicleBaseAddress = (unsigned int*)PLAYER_VEHICLE_STRUCT_POINTER;
 const unsigned int* const pWantedLevelBaseAddress = (unsigned int*)WANTED_LEVEL_STRUCT_POINTER;
+EntityTable** ppPedestrianTable = (EntityTable**)PEDESTRIAN_TABLE_POINTER_ADDRESS;
+EntityTable** ppVehicleTable = (EntityTable**)VEHICLE_TABLE_POINTER_ADDRESS;
 byte* const pNoCrimesFlag = (byte*)NO_CRIMES_FLAG_ADDRESS;
 
 void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int) = (void(*)(const char*, unsigned int, unsigned int, unsigned int))DISPLAY_MESSAGE_FUNCTION_ADDRESS;

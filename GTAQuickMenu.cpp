@@ -154,9 +154,8 @@ void SelfDestructMenuItem::onActivate() {
 	}
 	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicleBaseAddress);
 	unsigned int pBlowUpVehicle = (*vtable)[41];
-	void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
-	__asm { mov ecx, [vehicleBaseAddress] }
-	blowUpVehicle(0, 0);
+	BlowUpFunction blowUpVehicle = (BlowUpFunction)pBlowUpVehicle;
+	blowUpVehicle(vehicleBaseAddress, 0, 0);
 }
 
 void StepForwardMenuItem::onActivate() {
@@ -291,4 +290,46 @@ string VehicleColorMenuItem::getText() {
 		return "(Enter vehicle to change color)";
 	}
 	return "Vehicle color " + to_string(color);
+}
+
+string KillEveryoneMenuItem::getText() {
+	return "Kill Everyone";
+}
+
+void KillEveryoneMenuItem::onActivate() {
+	const EntityTable table = **ppPedestrianTable;
+	unsigned int numSlots = table.numSlots;
+	unsigned int pedestrianArrayBase = table.arrayBaseAddress;
+	byte* slotInUse = table.slotInUse;
+	for (int i = 1; i < numSlots; i++) {
+		if (slotInUse[i] >> 7) {
+			continue;
+		}
+		*(float*)(pedestrianArrayBase + i * PEDESTRIAN_OBJECT_SIZE + PEDESTRIAN_HEALTH_OFFSET) = 0.f;
+	}
+}
+
+string BlowUpAllVehicles::getText() {
+	return "Blow Up All Vehicles";
+}
+
+void BlowUpAllVehicles::onActivate() {
+	const EntityTable table = **ppVehicleTable;
+	unsigned int numSlots = table.numSlots;
+	unsigned int arrayBaseAddress = table.arrayBaseAddress;
+	byte* slotInUse = table.slotInUse;
+	unsigned int playerCarBaseAddress = getCurrentVehicle()->baseAddress;
+	for (int i = 0; i < numSlots; i++) {
+		if (slotInUse[i] >> 7) {
+			continue;
+		}
+		unsigned int baseAddress = arrayBaseAddress + i * VEHICLE_OBJECT_SIZE;
+		if(baseAddress == playerCarBaseAddress) {
+			continue;
+		}
+		unsigned int** vtable = reinterpret_cast<unsigned int**>(baseAddress);
+		unsigned int pBlowUpVehicle = (*vtable)[41];
+		BlowUpFunction blowUpVehicle = (BlowUpFunction)(pBlowUpVehicle);
+		blowUpVehicle(baseAddress, 0, 0);
+	}
 }

@@ -75,6 +75,8 @@ Vehicle vehicle;
 QuickMenuItem* menuItems[] = {
 	new SpawnCarMenuItem(506),
 	new RepairVehicleMenuItem(),
+	new KillEveryoneMenuItem(),
+	new BlowUpAllVehicles(),
 	new VehicleColorMenuItem(),
 	new QuickTakeOffMenuItem(),
 	new StepForwardMenuItem(),
@@ -92,6 +94,7 @@ Cheat* cheats[] = {
 	new Cheat(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 	new Cheat(nullptr, nullptr, &holdRBForAirBrake, "Hold RB for Air Brake", false),
 	new Cheat(nullptr, nullptr, &repellantTouch, "Repellant Touch", false),
+	new Cheat(nullptr, nullptr, &driveOnWalls, "Drive On Walls", false),
 	new Cheat(nullptr, nullptr, &infiniteNos, "Infinite NOS", false),
 	new Cheat(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new Cheat(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
@@ -708,9 +711,8 @@ void rhinoCar() {
 				case CLASS_HELICOPTER:
 					unsigned int* vtable = reinterpret_cast<unsigned int*>(cls);
 					unsigned int pBlowUpVehicle = vtable[41];
-					void(*blowUpVehicle)(unsigned int, unsigned int) = (void(*)(unsigned int, unsigned int))(pBlowUpVehicle);
-					__asm { mov ecx, [touchedObjectBaseAddress] }
-					blowUpVehicle(player.baseAddress, 0);
+					BlowUpFunction blowUpVehicle = (BlowUpFunction)pBlowUpVehicle;
+					blowUpVehicle(touchedObjectBaseAddress, player.baseAddress, 0);
 					break;
 				}
 			}
@@ -974,4 +976,16 @@ void infiniteNos() {
 	if (*vehicle.nosAmount >= 0.f) {
 		*vehicle.nosAmount = 1.f;
 	}
+}
+
+void driveOnWalls() {
+	if (!vehicle.baseAddress || vehicle.objectClass == CLASS_BOAT || vehicle.objectClass == CLASS_HELICOPTER) {
+		return;
+	}
+	Vector3d* up = vehicle.up;
+	Vector3d* velocity = vehicle.velocity;
+
+	velocity->x += -0.013 * up->x;
+	velocity->y += -0.013 * up->y;
+	velocity->z += -0.013 * up->z + 0.013;
 }

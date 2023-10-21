@@ -73,3 +73,15 @@ public:
 	void onRightInput();
 	int getCurrentVehicleColor();
 };
+
+class KillEveryoneMenuItem : public QuickMenuItem {
+public:
+	string getText();
+	void onActivate();
+};
+
+class BlowUpAllVehicles : public QuickMenuItem {
+public:
+	string getText();
+	void onActivate();
+};

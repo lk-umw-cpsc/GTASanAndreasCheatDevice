@@ -46,6 +46,7 @@ void enableNoPlaneDamage();
 void disableNoPlaneDamage();
 void discoMode();
 void infiniteNos();
+void driveOnWalls();
 
 Vehicle* getCurrentVehicle();
 Pedestrian* getPlayer();

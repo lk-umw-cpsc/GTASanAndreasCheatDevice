@@ -66,6 +66,12 @@ struct WantedLevel {
 	int* heat;
 };
 
+struct EntityTable {
+	unsigned int arrayBaseAddress;
+	byte* slotInUse;
+	unsigned int numSlots;
+};
+
 void hookPedestrian(unsigned int baseAddress, Pedestrian* pedOut);
 void hookPedestrianMultiVector(unsigned int baseAddress, Pedestrian* pedOut);
 void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut);
@@ -153,9 +159,19 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define ENTITY_INFO_TABLE_BASE_ADDRESS				0xA9B0C8
 
+#define PEDESTRIAN_TABLE_POINTER_ADDRESS			0xB74490
+#define PEDESTRIAN_OBJECT_SIZE						0x7C4
+
+#define VEHICLE_TABLE_POINTER_ADDRESS				0xB74494
+#define VEHICLE_OBJECT_SIZE							0xA18
+
+typedef void(__thiscall* BlowUpFunction)(DWORD __this, DWORD cause, DWORD unknownNull);
+
 extern const unsigned int* const pPlayerPedBaseAddress;
 extern const unsigned int* const pPlayerVehicleBaseAddress;
 extern const unsigned int* const pWantedLevelBaseAddress;
+extern EntityTable** ppPedestrianTable;
+extern EntityTable** ppVehicleTable;
 extern byte* const pNoCrimesFlag;
 
 extern void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int);
