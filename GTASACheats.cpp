@@ -611,3 +611,13 @@ void driveOnWalls() {
 	velocity->y += -0.013 * up->y;
 	velocity->z += -0.013 * up->z + 0.013;
 }
+
+BYTE overwrittenTrippyInstructions[2];
+void enableTrippy() {
+	BYTE instructions[] = { 0xEB, 0x0F };
+	overwriteInstructions((void*)TRIPPY_EFFECT_INSTRUCTION_ADDRESS, instructions, sizeof(instructions), overwrittenTrippyInstructions);
+}
+
+void disableTrippy() {
+	restoreInstructions((void*)TRIPPY_EFFECT_INSTRUCTION_ADDRESS, overwrittenTrippyInstructions, sizeof(overwrittenTrippyInstructions));
+}

@@ -76,3 +76,9 @@ float* gravity = (float*)(GRAVITY_ADDRESS);
 void(*displayMessage)(const char*, DWORD, DWORD, DWORD) = (void(*)(const char*, DWORD, DWORD, DWORD))DISPLAY_MESSAGE_FUNCTION_ADDRESS;
 void (*spawnCar)(WORD) = (void(*)(WORD))0x43A0B0;
 DWORD* entityInfo = reinterpret_cast<DWORD*>(ENTITY_INFO_TABLE_BASE_ADDRESS);
+
+// Spawn explosion:
+// ((void(*)(DWORD, WORD, float, float, float, BYTE, BYTE, BYTE))0x737c80)(pplayer, 0x13, *(float*)(vec + 0x30), *(float*)(vec + 0x34), *(float*)(vec + 0x38), 0, 0, 0);
+
+BYTE* gamePaused = (BYTE*)GAME_PAUSED_FLAG_ADDRESS;
+BYTE* inputDisabled = (BYTE*)INPUT_DISABLED_FLAG_ADDRESS;

@@ -172,6 +172,11 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define POPUP_MENU_SHOWING_FLAG_ADDRESS				0x00BAA474 // byte
 
+#define GAME_PAUSED_FLAG_ADDRESS					0xB7CB49
+#define INPUT_DISABLED_FLAG_ADDRESS					0xB73566
+
+#define TRIPPY_EFFECT_INSTRUCTION_ADDRESS			0x705138
+
 extern const DWORD* const pPlayerPedBaseAddress;
 extern const DWORD* const pPlayerVehicleBaseAddress;
 extern const DWORD* const pWantedLevelBaseAddress;
@@ -183,7 +188,8 @@ extern float* gravity;
 extern void(*displayMessage)(const char*, DWORD, DWORD, DWORD);
 extern void (*spawnCar)(WORD);
 extern DWORD* entityInfo;
-
+extern BYTE* gamePaused;
+extern BYTE* inputDisabled;
 /*
 "Crime" instructions
 

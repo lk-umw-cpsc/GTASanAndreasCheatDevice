@@ -37,3 +37,5 @@ void disableNoPlaneDamage();
 void discoMode();
 void infiniteNos();
 void driveOnWalls();
+void enableTrippy();
+void disableTrippy();

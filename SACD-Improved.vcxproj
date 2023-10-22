@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CheatMenu.cpp" />
+    <ClCompile Include="D3D9EndSceneHook.cpp" />
     <ClCompile Include="dllMain.cpp" />
     <ClCompile Include="Cheat.cpp" />
     <ClCompile Include="GTA.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="Cheat.h" />
     <ClInclude Include="CheatMenu.h" />
+    <ClInclude Include="D3D9EndSceneHook.h" />
     <ClInclude Include="dllMain.h" />
     <ClInclude Include="GTA.h" />
     <ClInclude Include="GTACheatMenu.h" />

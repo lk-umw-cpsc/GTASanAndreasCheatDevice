@@ -3,7 +3,6 @@
 #include <math.h>
 
 #include <string>
-#include <fstream>
 
 #include "GTA.h"
 #include "Cheat.h"
@@ -11,12 +10,11 @@
 #include "GTACheatMenu.h"
 #include "GTASACheats.h"
 #include "Memory.h"
+#include "D3D9EndSceneHook.h"
 
 #include "dllMain.h"
 
 using namespace std;
-
-#define END_SCENE_VTABLE_INDEX 42
 
 /*
 $(DXSDK_DIR)Include
@@ -28,6 +26,7 @@ $(DXSDK_DIR)Lib\x86
 	Menu improvements:
 	* Allow menu to scroll if too big (dynamically)
 	* Input handler class
+	* Move D3D hook etc to own file
 	
 	Ideas:
 	Player movement speed
@@ -57,17 +56,10 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 		// Call the init function once the DLL is attached to a process
 		hDLL = hinstDLL;
 		init();
-		// Install the Direct3D9 hook via a new thread (separate thread required to prevent deadlock)
-		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)d3d9hookinit, (void*)"GTA: San Andreas", 0, 0);
+		installD3D9Hook((char*)"GTA: San Andreas", drawScene);
 	}
 	return TRUE;
 }
-
-DWORD endSceneAddress, jumpBackAddress;
-DWORD* LPDIRECT3DDEVICE9vTable = NULL;
-typedef HRESULT (WINAPI* EndSceneFunction)(LPDIRECT3DDEVICE9);
-EndSceneFunction EndScene;
-byte overwrittenEndSceneCode[5];
 
 LPD3DXFONT pFont = NULL;
 LPD3DXSPRITE pSprite;
@@ -112,6 +104,7 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 	new ActiveCheatMenuItem(nullptr, nullptr, &dpadLeftToToggleCarLock, "D-pad Left Toggles Door Lock", true),
 	new ActiveCheatMenuItem(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
 	new ActiveCheatMenuItem(nullptr, nullptr, &discoMode, "Disco Mode", false),
+	new ActiveCheatMenuItem(&enableTrippy, &disableTrippy, nullptr, "Far Out! Mode", false),
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
@@ -245,8 +238,7 @@ void exit() {
 		delete quickMenu.getMenuItem(i);
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
-	LPDIRECT3DDEVICE9vTable[END_SCENE_VTABLE_INDEX] = endSceneAddress;
-
+	uninstallD3D9Hook();
 	if (pSprite) {
 		pSprite->Release();
 	}
@@ -266,48 +258,15 @@ void unload() {
 	FreeLibraryAndExitThread(hDLL, 0);
 }
 
-void d3d9hookinit(char* windowName) {
-	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
-	if (!d3d) {
-		return;
-	}
-	IDirect3DDevice9* dummyDevice = nullptr;
-	D3DPRESENT_PARAMETERS params = {};
-	params.Windowed = false;
-	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	HWND handle = FindWindow(NULL, windowName);
-	params.hDeviceWindow = handle;
-
-	HRESULT success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
-	if (success != S_OK) {
-		params.Windowed = true;
-		success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
-	}
-	d3d->Release();
-	if (success != S_OK) {
-		return;
-	}
-	DWORD** vtable = reinterpret_cast<DWORD**>(dummyDevice);
-	LPDIRECT3DDEVICE9vTable = *vtable;
-	endSceneAddress = LPDIRECT3DDEVICE9vTable[END_SCENE_VTABLE_INDEX];
-	jumpBackAddress = endSceneAddress + 6;
-	EndScene = (EndSceneFunction)endSceneAddress;
-#ifdef SACHEATDEVICE_DEBUG
-	ofstream f;
-	f.open("endscene.txt");
-	f << hex << endSceneAddress << endl << (*vtable + 42);
-	f.close();
-#endif
-	(*vtable)[END_SCENE_VTABLE_INDEX] = (DWORD)&endSceneDetour;
-	dummyDevice->Release();
-}
-
 D3DVIEWPORT9 pViewport;
 
 #define FONT_SCREEN_HEIGHT_PERCENTAGE	.03f // What % of the screen should the menu text take up?
 #define LINE_SPACING_PERCENTAGE			.25f // What % of the above should be placed between each line of text in the menu?
 
 void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice) {
+	if (*gamePaused) {
+		return;
+	}
 	if (!pFont) {
 		pDevice->GetViewport(&pViewport);
 		int height = pViewport.Height;
@@ -325,9 +284,4 @@ void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice) {
 		quickMenu.show(pDevice, pFont, pSprite);
 	}
 	pSprite->End();
-}
-
-HRESULT WINAPI endSceneDetour(LPDIRECT3DDEVICE9 pDevice) {
-	drawScene(pDevice);
-	return EndScene(pDevice);
 }
