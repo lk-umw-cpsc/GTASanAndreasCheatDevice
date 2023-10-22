@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include <string>
-#include <iostream>
+#include <fstream>
 
 #include "GTA.h"
 #include "Cheat.h"
@@ -13,6 +13,8 @@
 #include "Memory.h"
 
 #include "dllMain.h"
+
+#define SACHEATDEVICE_DEBUG
 
 using namespace std;
 
@@ -64,7 +66,8 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 }
 
 DWORD endSceneAddress, jumpBackAddress;
-void (*EndScene)(LPDIRECT3DDEVICE9);
+typedef HRESULT (WINAPI* EndSceneFunction)(LPDIRECT3DDEVICE9);
+EndSceneFunction EndScene;
 byte overwrittenEndSceneCode[5];
 
 WantedLevel wantedLevel;
@@ -277,7 +280,7 @@ void d3d9hookinit(char* windowName) {
 	DWORD** vtable = reinterpret_cast<DWORD**>(dummyDevice);
 	endSceneAddress = (*vtable)[42];
 	jumpBackAddress = endSceneAddress + 6;
-	EndScene = (void(*)(LPDIRECT3DDEVICE9))endSceneAddress;
+	EndScene = (EndSceneFunction)endSceneAddress;
 #ifdef SACHEATDEVICE_DEBUG
 	ofstream f;
 	f.open("endscene.txt");
@@ -287,11 +290,11 @@ void d3d9hookinit(char* windowName) {
 	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
 	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
 	memcpy(&jump[1], &jumpOffset, 4);
-	overwriteInstructions((void*)endSceneAddress, jump, 5, overwrittenEndSceneCode);
+	//overwriteInstructions((void*)endSceneAddress, jump, 5, overwrittenEndSceneCode);
+	(*vtable)[42] = (DWORD)&endSceneDetour;
 	dummyDevice->Release();
 }
 
-LPDIRECT3DDEVICE9 pDevice;
 LPD3DXFONT pFont = NULL;
 LPD3DXSPRITE pSprite;
 D3DVIEWPORT9 pViewport;
@@ -299,7 +302,7 @@ D3DVIEWPORT9 pViewport;
 #define FONT_SCREEN_HEIGHT_PERCENTAGE	.03f // What % of the screen should the menu text take up?
 #define LINE_SPACING_PERCENTAGE			.25f // What % of the above should be placed between each line of text in the menu?
 
-void APIENTRY drawScene() {
+void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice) {
 	if (!pFont) {
 		pDevice->GetViewport(&pViewport);
 		int height = pViewport.Height;
@@ -319,20 +322,25 @@ void APIENTRY drawScene() {
 	pSprite->End();
 }
 
-void endSceneDetour() {
-	__asm {
-		push ebp
-		push esp
-	}
-
-	__asm mov pDevice, eax
-	drawScene();
-	__asm {
-		pop esp
-		pop ebp
-		push ebp
-		mov ebp, esp
-		mov eax, [ebp + 0x08]
-		jmp jumpBackAddress
-	}
+HRESULT WINAPI endSceneDetour(LPDIRECT3DDEVICE9 pDevice) {
+	drawScene(pDevice);
+	return EndScene(pDevice);
 }
+
+//void endSceneDetour() {
+//	__asm {
+//		push ebp
+//		push esp
+//	}
+//
+//	__asm mov pDevice, eax
+//	drawScene();
+//	__asm {
+//		pop esp
+//		pop ebp
+//		push ebp
+//		mov ebp, esp
+//		mov eax, [ebp + 0x08]
+//		jmp jumpBackAddress
+//	}
+//}

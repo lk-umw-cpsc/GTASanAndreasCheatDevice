@@ -1,5 +1,6 @@
 #pragma once
 //#define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
+#include <d3d9.h>
 #include <Windows.h>
 #include <Xinput.h>
 
@@ -17,7 +18,8 @@
 
 BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOID lpvReserved);
 void d3d9hookinit(char* windowName);
-void endSceneDetour();
+//void endSceneDetour();
+HRESULT WINAPI endSceneDetour(LPDIRECT3DDEVICE9 pDevice);
 void init();
 void detour();
 void hack();
