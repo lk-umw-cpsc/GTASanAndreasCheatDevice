@@ -14,8 +14,6 @@
 
 #include "dllMain.h"
 
-#define SACHEATDEVICE_DEBUG
-
 using namespace std;
 
 /*
@@ -293,7 +291,6 @@ void d3d9hookinit(char* windowName) {
 	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
 	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
 	memcpy(&jump[1], &jumpOffset, 4);
-	//overwriteInstructions((void*)endSceneAddress, jump, 5, overwrittenEndSceneCode);
 	(*vtable)[42] = (DWORD)&endSceneDetour;
 	dummyDevice->Release();
 }
@@ -329,21 +326,3 @@ HRESULT WINAPI endSceneDetour(LPDIRECT3DDEVICE9 pDevice) {
 	drawScene(pDevice);
 	return EndScene(pDevice);
 }
-
-//void endSceneDetour() {
-//	__asm {
-//		push ebp
-//		push esp
-//	}
-//
-//	__asm mov pDevice, eax
-//	drawScene();
-//	__asm {
-//		pop esp
-//		pop ebp
-//		push ebp
-//		mov ebp, esp
-//		mov eax, [ebp + 0x08]
-//		jmp jumpBackAddress
-//	}
-//}
