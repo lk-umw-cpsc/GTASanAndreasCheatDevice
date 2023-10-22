@@ -22,6 +22,11 @@ $(DXSDK_DIR)Lib\x86
 */
 
 /*
+	Menu improvements:
+	* Allow menu items to be disabled
+	* Allow menu to scroll if too big (dynamically)
+	* Allow menu to be left/right/center aligned, top/bottom/center aligned
+	
 	Ideas:
 	Player movement speed
 	Gravity 543087 gravity application instruction
@@ -34,11 +39,11 @@ $(DXSDK_DIR)Lib\x86
 
 */
 
-const void (*fireRocket)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int) = (const void(*)(unsigned int, unsigned int, float, float, float, unsigned int, unsigned int, unsigned int))0x737C80;
+const void (*fireRocket)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD) = (const void(*)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD))0x737C80;
 
 bool* menuShowing = reinterpret_cast<bool*>(0x00BAA474);
 
-const void(*gameLoop)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
+const void(*detouredFunction)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
 
 bool displayMenu, displayQuickMenu;
 
@@ -101,23 +106,23 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
-
 GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*));
 GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems);
 
-unsigned int originalFunctionCall;
+DWORD preDetourFunctionCall;
+
 void init() {
 	hookWantedLevel(*pWantedLevelBaseAddress, &wantedLevel);
 	hookPedestrian(*pPlayerPedBaseAddress, &player);
 
-	unsigned int hookOffset = (unsigned int)&detour - GAME_LOOP_FUNCTION_CALL - 4;
-	overwriteInstructions((void*)GAME_LOOP_FUNCTION_CALL, &hookOffset, 4, &originalFunctionCall);
+	DWORD hookOffset = (DWORD)&detour - GAME_LOOP_FUNCTION_CALL - 4;
+	overwriteInstructions((void*)GAME_LOOP_FUNCTION_CALL, &hookOffset, 4, &preDetourFunctionCall);
 	displayMessage("~p~Cheat Device~w~ loaded~N~Hit LB + dpad for menu", 0, 0, 0);
 }
 
 void detour()
 {
-	gameLoop();
+	detouredFunction();
 	hack();
 }
 
@@ -128,15 +133,15 @@ WORD buttonsPressed;
 WORD buttonsReleased;
 WORD previousButtonState;
 WORD carSpawnID = 506; // Super GT
-unsigned int vehicleBALastFrame = NULL;
+DWORD vehicleBALastFrame = NULL;
 
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
 		exit();
 		return;
 	}
-	unsigned int playerBaseAddress = *pPlayerPedBaseAddress;
-	unsigned int vehicleBaseAddress = *pPlayerVehicleBaseAddress;
+	DWORD playerBaseAddress = *pPlayerPedBaseAddress;
+	DWORD vehicleBaseAddress = *pPlayerVehicleBaseAddress;
 	if (playerBaseAddress != player.baseAddress && playerBaseAddress) {
 		hookPedestrian(playerBaseAddress, &player);
 	}
@@ -222,9 +227,10 @@ void hack() {
 }
 
 
-unsigned int endSceneAddress, jumpBackAddress;
+DWORD endSceneAddress, jumpBackAddress;
 void (*EndScene)(LPDIRECT3DDEVICE9);
 byte overwrittenEndSceneCode[5];
+
 void d3d9hookinit() {
 	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (!d3d) {
@@ -246,7 +252,7 @@ void d3d9hookinit() {
 	if (success != S_OK) {
 		return;
 	}
-	unsigned int** vtable = reinterpret_cast<unsigned int**>(dummyDevice);
+	DWORD** vtable = reinterpret_cast<DWORD**>(dummyDevice);
 	endSceneAddress = (*vtable)[42];
 	jumpBackAddress = endSceneAddress + 6;
 	EndScene = (void(*)(LPDIRECT3DDEVICE9))endSceneAddress;
@@ -260,12 +266,14 @@ void d3d9hookinit() {
 	overwriteInstructions((void*)endSceneAddress, jump, 5, overwrittenEndSceneCode);
 	dummyDevice->Release();
 }
+
 LPDIRECT3DDEVICE9 pDevice;
 LPD3DXFONT pFont = NULL;
 LPD3DXSPRITE pSprite;
 D3DVIEWPORT9 pViewport;
 int fontSize = 0;
 int lineGap = 0;
+
 void APIENTRY drawScene() {
 	if (!pFont) {
 		pDevice->GetViewport(&pViewport);
@@ -276,12 +284,7 @@ void APIENTRY drawScene() {
 		D3DXCreateFont(pDevice, fontSize, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Franklin Gothic"), &pFont);
 		D3DXCreateSprite(pDevice, &pSprite);
 	}
-	RECT r = { 100, 100, pViewport.Width, pViewport.Height };
-	D3DCOLOR color = D3DCOLOR_ARGB(255, 255, 255, 255);
-	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
 	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
-	RECT bounds = { 0, 0, 0, 0 };
-	int widest = 0;
 	if (displayMenu) {
 		mainMenu.show(pDevice, pFont, pSprite);
 	}
@@ -318,7 +321,7 @@ void exit() {
 	for (int i = 0; i < numQuickMenuItems; i++) {
 		delete quickMenu.getMenuItem(i);
 	}
-	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &originalFunctionCall, 4);
+	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
 	restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
 	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
@@ -326,6 +329,6 @@ void exit() {
 
 void unload() {
 	HMODULE h;
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, "SADevice.dll", &h);
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, TARGET_NAME, &h);
 	FreeLibraryAndExitThread(hDLL, 0);
 }

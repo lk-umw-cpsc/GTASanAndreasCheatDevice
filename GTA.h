@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-typedef void(__thiscall* BlowUpFunction)(DWORD __this, DWORD cause, DWORD unknownNull);
+typedef void(__thiscall* voidObjectFunctionDWORDDWORD)(DWORD __this, DWORD, DWORD);
 typedef void(__thiscall* voidObjectFunction)(DWORD __this);
 
 struct Vector3d {
@@ -18,10 +18,10 @@ struct WheelState {
 };
 
 struct Pedestrian {
-	unsigned int baseAddress;
-	unsigned int objectClass;
-	unsigned int* pMultiVectorBaseAddress;
-	unsigned int multiVectorBaseAddress;
+	DWORD baseAddress;
+	DWORD objectClass;
+	DWORD* pMultiVectorBaseAddress;
+	DWORD multiVectorBaseAddress;
 	Vector3d* left;
 	Vector3d* forward;
 	Vector3d* up;
@@ -30,17 +30,17 @@ struct Pedestrian {
 	Vector3d* rotationalVelocity;
 	Vector3d* impulse;
 	Vector3d* rotationalImpulse;
-	unsigned int* pTouch;
+	DWORD* pTouch;
 	float* health;
 	float* armor;
 	float* oxygen;
 };
 
 struct Vehicle {
-	unsigned int baseAddress;
-	unsigned int objectClass;
-	unsigned int* pMultiVectorBaseAddress;
-	unsigned int multiVectorBaseAddress;
+	DWORD baseAddress;
+	DWORD objectClass;
+	DWORD* pMultiVectorBaseAddress;
+	DWORD multiVectorBaseAddress;
 	Vector3d* left;
 	Vector3d* forward;
 	Vector3d* up;
@@ -49,11 +49,11 @@ struct Vehicle {
 	Vector3d* rotationalVelocity;
 	Vector3d* impulse;
 	Vector3d* rotationalImpulse;
-	unsigned short* id;
+	WORD* id;
 	float* mass;
-	unsigned int* pTouch;
+	DWORD* pTouch;
 	float* health;
-	unsigned int* lock;
+	DWORD* lock;
 	float* tireRotation;
 	byte* nosCount;
 	float* nosAmount;
@@ -64,22 +64,22 @@ struct Vehicle {
 };
 
 struct WantedLevel {
-	unsigned int baseAddress;
+	DWORD baseAddress;
 	int* stars;
 	int* heat;
 };
 
 struct EntityTable {
-	unsigned int arrayBaseAddress;
+	DWORD arrayBaseAddress;
 	byte* slotInUse;
-	unsigned int numSlots;
+	DWORD numSlots;
 };
 
-void hookPedestrian(unsigned int baseAddress, Pedestrian* pedOut);
-void hookPedestrianMultiVector(unsigned int baseAddress, Pedestrian* pedOut);
-void hookVehicle(unsigned int baseAddress, Vehicle* vehicleOut);
-void hookVehicleMultiVector(unsigned int baseAddress, Vehicle* vehicleOut);
-void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
+void hookPedestrian(DWORD baseAddress, Pedestrian* pedOut);
+void hookPedestrianMultiVector(DWORD baseAddress, Pedestrian* pedOut);
+void hookVehicle(DWORD baseAddress, Vehicle* vehicleOut);
+void hookVehicleMultiVector(DWORD baseAddress, Vehicle* vehicleOut);
+void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define EXE_OFFSET 0x400000 // offset of items from the base address of sanandreas.exe
 
@@ -170,17 +170,19 @@ void hookWantedLevel(unsigned int baseAddress, WantedLevel* wlOut);
 
 #define GRAVITY_ADDRESS								0x863984
 
-extern const unsigned int* const pPlayerPedBaseAddress;
-extern const unsigned int* const pPlayerVehicleBaseAddress;
-extern const unsigned int* const pWantedLevelBaseAddress;
+#define POPUP_MENU_SHOWING_FLAG_ADDRESS				0x00BAA474 // byte
+
+extern const DWORD* const pPlayerPedBaseAddress;
+extern const DWORD* const pPlayerVehicleBaseAddress;
+extern const DWORD* const pWantedLevelBaseAddress;
 extern EntityTable** ppPedestrianTable;
 extern EntityTable** ppVehicleTable;
 extern byte* const pNoCrimesFlag;
 extern float* gravity;
 
-extern void(*displayMessage)(const char*, unsigned int, unsigned int, unsigned int);
-extern void (*spawnCar)(unsigned short);
-extern unsigned int* entityInfo;
+extern void(*displayMessage)(const char*, DWORD, DWORD, DWORD);
+extern void (*spawnCar)(WORD);
+extern DWORD* entityInfo;
 
 /*
 "Crime" instructions

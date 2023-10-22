@@ -134,8 +134,8 @@ void RepairVehicleMenuItem::onActivate()
 	if (!vehicle.baseAddress) {
 		return;
 	}
-	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
-	unsigned int pRepairVehicle = (*vtable)[50];
+	DWORD** vtable = reinterpret_cast<DWORD**>(vehicle.baseAddress);
+	DWORD pRepairVehicle = (*vtable)[50];
 	voidObjectFunction repairVehicle = (voidObjectFunction)pRepairVehicle;
 	repairVehicle(vehicle.baseAddress);
 }
@@ -150,7 +150,7 @@ void SelfDestructMenuItem::onActivate() {
 	}
 	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
 	unsigned int pBlowUpVehicle = (*vtable)[41];
-	BlowUpFunction blowUpVehicle = (BlowUpFunction)pBlowUpVehicle;
+	voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
 	blowUpVehicle(vehicle.baseAddress, 0, 0);
 }
 
@@ -314,7 +314,7 @@ void BlowUpAllVehicles::onActivate() {
 		}
 		unsigned int** vtable = reinterpret_cast<unsigned int**>(baseAddress);
 		unsigned int pBlowUpVehicle = (*vtable)[41];
-		BlowUpFunction blowUpVehicle = (BlowUpFunction)(pBlowUpVehicle);
+		voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)(pBlowUpVehicle);
 		blowUpVehicle(baseAddress, 0, 0);
 	}
 }

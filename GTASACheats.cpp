@@ -240,10 +240,10 @@ void noCarDamageDetour() {
 }
 
 void fixCar() {
-	unsigned int baseAddress = vehicle.baseAddress;
+	DWORD baseAddress = vehicle.baseAddress;
 	if (baseAddress && baseAddress != vehicleBALastFrame) {
-		unsigned int** vtable = reinterpret_cast<unsigned int**>(baseAddress);
-		unsigned int pRepairVehicle = (*vtable)[50];
+		DWORD** vtable = reinterpret_cast<DWORD**>(baseAddress);
+		DWORD pRepairVehicle = (*vtable)[50];
 		voidObjectFunction repairVehicle = (voidObjectFunction)pRepairVehicle;
 		repairVehicle(baseAddress);
 	}
@@ -314,9 +314,9 @@ void disableNoPlaneExplosion() {
 }
 
 void rhinoCar() {
-	unsigned int vehicleBaseAddress = vehicle.baseAddress;
+	DWORD vehicleBaseAddress = vehicle.baseAddress;
 	if (vehicleBaseAddress) {
-		unsigned int touchedObjectBaseAddress = *vehicle.pTouch;
+		DWORD touchedObjectBaseAddress = *vehicle.pTouch;
 		if (vehicleBaseAddress != vehicleBALastFrame) {
 			*vehicle.mass *= 8;
 		}
@@ -324,16 +324,16 @@ void rhinoCar() {
 			Vehicle v;
 			hookVehicle(touchedObjectBaseAddress, &v);
 			if (*v.health > 0) {
-				unsigned int* pTouchedObjectClass = reinterpret_cast<unsigned int*>(touchedObjectBaseAddress);
-				unsigned int cls = *pTouchedObjectClass;
+				DWORD* pTouchedObjectClass = reinterpret_cast<DWORD*>(touchedObjectBaseAddress);
+				DWORD cls = *pTouchedObjectClass;
 				switch (cls) {
 				case CLASS_CAR:
 				case CLASS_MOTORCYCLE:
 				case CLASS_PLANE:
 				case CLASS_HELICOPTER:
-					unsigned int* vtable = reinterpret_cast<unsigned int*>(cls);
-					unsigned int pBlowUpVehicle = vtable[41];
-					BlowUpFunction blowUpVehicle = (BlowUpFunction)pBlowUpVehicle;
+					DWORD* vtable = reinterpret_cast<DWORD*>(cls);
+					DWORD pBlowUpVehicle = vtable[41];
+					voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
 					blowUpVehicle(touchedObjectBaseAddress, player.baseAddress, 0);
 					break;
 				}
@@ -475,7 +475,7 @@ void autoLockCarDoors() {
 Vector3d rleft, rforward, rup, rposition, rvelocity, rrotVelocity;
 int repelRestoreFrames = 0;
 void repellantTouch() {
-	unsigned int touch;
+	DWORD touch;
 	Vector3d* playerPosition;
 	if (vehicle.baseAddress) {
 		touch = *vehicle.pTouch;
@@ -508,7 +508,7 @@ void repellantTouch() {
 	}
 	else {
 		// bye bye
-		unsigned int cls = *(unsigned int*)touch;
+		DWORD cls = *(DWORD*)touch;
 		Vector3d* touchedObjectVelocity = nullptr;
 		Vector3d* touchedObjectPosition = nullptr;
 		switch (cls) {
