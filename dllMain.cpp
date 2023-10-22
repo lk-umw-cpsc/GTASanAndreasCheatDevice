@@ -26,9 +26,7 @@ $(DXSDK_DIR)Lib\x86
 
 /*
 	Menu improvements:
-	* Allow menu items to be disabled
 	* Allow menu to scroll if too big (dynamically)
-	* Allow menu to be left/right/center aligned, top/bottom/center aligned
 	* Input handler class
 	
 	Ideas:
@@ -70,6 +68,9 @@ DWORD* LPDIRECT3DDEVICE9vTable = NULL;
 typedef HRESULT (WINAPI* EndSceneFunction)(LPDIRECT3DDEVICE9);
 EndSceneFunction EndScene;
 byte overwrittenEndSceneCode[5];
+
+LPD3DXFONT pFont = NULL;
+LPD3DXSPRITE pSprite;
 
 WantedLevel wantedLevel;
 Pedestrian player;
@@ -244,8 +245,15 @@ void exit() {
 		delete quickMenu.getMenuItem(i);
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
-	//restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
 	LPDIRECT3DDEVICE9vTable[END_SCENE_VTABLE_INDEX] = endSceneAddress;
+
+	if (pSprite) {
+		pSprite->Release();
+	}
+	if (pFont) {
+		pFont->Release();
+	}
+
 	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
 }
@@ -294,8 +302,6 @@ void d3d9hookinit(char* windowName) {
 	dummyDevice->Release();
 }
 
-LPD3DXFONT pFont = NULL;
-LPD3DXSPRITE pSprite;
 D3DVIEWPORT9 pViewport;
 
 #define FONT_SCREEN_HEIGHT_PERCENTAGE	.03f // What % of the screen should the menu text take up?
