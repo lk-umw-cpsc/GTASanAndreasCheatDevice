@@ -16,7 +16,7 @@
 #define distance2d(a, b) ((float)sqrt(a*a + b*b))
 
 BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOID lpvReserved);
-void d3d9hookinit();
+void d3d9hookinit(char* windowName);
 void endSceneDetour();
 void init();
 void detour();

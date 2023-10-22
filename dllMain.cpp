@@ -2,7 +2,8 @@
 #include <d3dx9core.h>
 #include <math.h>
 
-#include <string> 
+#include <string>
+#include <iostream>
 
 #include "GTA.h"
 #include "Cheat.h"
@@ -56,7 +57,8 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 		// Call the init function once the DLL is attached to a process
 		hDLL = hinstDLL;
 		init();
-		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)d3d9hookinit, 0, 0, 0);
+		// Install the Direct3D9 hook via a new thread (separate thread required to prevent deadlock)
+		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)d3d9hookinit, (void*)"GTA: San Andreas", 0, 0);
 	}
 	return TRUE;
 }
@@ -251,7 +253,7 @@ void unload() {
 	FreeLibraryAndExitThread(hDLL, 0);
 }
 
-void d3d9hookinit() {
+void d3d9hookinit(char* windowName) {
 	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (!d3d) {
 		return;
@@ -260,7 +262,7 @@ void d3d9hookinit() {
 	D3DPRESENT_PARAMETERS params = {};
 	params.Windowed = false;
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	HWND handle = FindWindow(NULL, "GTA: San Andreas");
+	HWND handle = FindWindow(NULL, windowName);
 	params.hDeviceWindow = handle;
 
 	HRESULT success = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, params.hDeviceWindow, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dummyDevice);
@@ -276,10 +278,12 @@ void d3d9hookinit() {
 	endSceneAddress = (*vtable)[42];
 	jumpBackAddress = endSceneAddress + 6;
 	EndScene = (void(*)(LPDIRECT3DDEVICE9))endSceneAddress;
-	/*ofstream f;
+#ifdef SACHEATDEVICE_DEBUG
+	ofstream f;
 	f.open("endscene.txt");
 	f << hex << endSceneAddress << endl << (*vtable + 42);
-	f.close();*/
+	f.close();
+#endif
 	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
 	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
 	memcpy(&jump[1], &jumpOffset, 4);
