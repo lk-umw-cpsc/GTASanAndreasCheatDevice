@@ -621,3 +621,14 @@ void enableTrippy() {
 void disableTrippy() {
 	restoreInstructions((void*)TRIPPY_EFFECT_INSTRUCTION_ADDRESS, overwrittenTrippyInstructions, sizeof(overwrittenTrippyInstructions));
 }
+
+void spawnExplosionAtTargetPedestrian() {
+	DWORD target = *player.pTargetBaseAddress;
+	if (!target || !(buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT)) {
+		return;
+	}
+	Pedestrian pedestrian;
+	hookPedestrian(target, &pedestrian);
+	Vector3d position = *pedestrian.position;
+	spawnExplosion(player.baseAddress, 0x13, position.x, position.y, position.z, NULL, NULL, NULL);
+}

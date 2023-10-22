@@ -31,6 +31,7 @@ struct Pedestrian {
 	Vector3d* impulse;
 	Vector3d* rotationalImpulse;
 	DWORD* pTouch;
+	DWORD* pTargetBaseAddress;
 	float* health;
 	float* armor;
 	float* oxygen;
@@ -104,6 +105,7 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 #define PEDESTRIAN_HEALTH_OFFSET					0x540
 #define PEDESTRIAN_ARMOR_OFFSET						0x548
 #define PEDESTRIAN_OXYGEN_OFFSET					0x550
+#define PEDESTRIAN_TARGET_POINTER_OFFSET			0x71C
 
 #define VEHICLE_ID_OFFSET							0x22
 #define VEHICLE_MASS_OFFSET							0x8C
@@ -177,6 +179,9 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define TRIPPY_EFFECT_INSTRUCTION_ADDRESS			0x705138
 
+#define BUNNY_HOP_MULTIPLIER_ADDRESS				0x00858C80
+#define JUMP_OVER_BHMULTIPLIER_INSTRUCTION_ADDRESS	0x6C0439
+
 extern const DWORD* const pPlayerPedBaseAddress;
 extern const DWORD* const pPlayerVehicleBaseAddress;
 extern const DWORD* const pWantedLevelBaseAddress;
@@ -184,9 +189,13 @@ extern EntityTable** ppPedestrianTable;
 extern EntityTable** ppVehicleTable;
 extern byte* const pNoCrimesFlag;
 extern float* gravity;
+extern float* bunnyHopMultiplier;
 
 extern void(*displayMessage)(const char*, DWORD, DWORD, DWORD);
+extern void (*spawnExplosion)(DWORD cause, WORD id, float x, float y, float z, DWORD, DWORD, DWORD);
 extern void (*spawnCar)(WORD);
+extern voidObjectFunction freezePedestrian;
+extern voidObjectFunction killPedestrian;
 extern DWORD* entityInfo;
 extern BYTE* gamePaused;
 extern BYTE* inputDisabled;
@@ -208,4 +217,7 @@ Prevent function call
 
 */
 
-//7fde3b ??? D3D call
+// 0x6A8519 2 NOPs to enable flying cars
+// 0x969179 set to 1 to enable free aim in car
+// 0x679c41 2 NOPs enable jump multiplier
+// 0x[0085862C] jump multiplier

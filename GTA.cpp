@@ -21,6 +21,7 @@ void hookPedestrian(DWORD baseAddress, Pedestrian* pedOut) {
 	pedOut->health = (float*)(baseAddress + PEDESTRIAN_HEALTH_OFFSET);
 	pedOut->armor = (float*)(baseAddress + PEDESTRIAN_ARMOR_OFFSET);
 	pedOut->oxygen = (float*)(baseAddress + PEDESTRIAN_OXYGEN_OFFSET);
+	pedOut->pTargetBaseAddress = (DWORD*)(baseAddress + PEDESTRIAN_TARGET_POINTER_OFFSET);
 }
 
 void hookPedestrianMultiVector(DWORD baseAddress, Pedestrian* pedOut) {
@@ -77,8 +78,10 @@ void(*displayMessage)(const char*, DWORD, DWORD, DWORD) = (void(*)(const char*, 
 void (*spawnCar)(WORD) = (void(*)(WORD))0x43A0B0;
 DWORD* entityInfo = reinterpret_cast<DWORD*>(ENTITY_INFO_TABLE_BASE_ADDRESS);
 
-// Spawn explosion:
-// ((void(*)(DWORD, WORD, float, float, float, BYTE, BYTE, BYTE))0x737c80)(pplayer, 0x13, *(float*)(vec + 0x30), *(float*)(vec + 0x34), *(float*)(vec + 0x38), 0, 0, 0);
-
+void (*spawnExplosion)(DWORD cause, WORD id, float x, float y, float z, DWORD, DWORD, DWORD) = (void(*)(DWORD, WORD, float x, float y, float z, DWORD, DWORD, DWORD))0x737c80;
 BYTE* gamePaused = (BYTE*)GAME_PAUSED_FLAG_ADDRESS;
 BYTE* inputDisabled = (BYTE*)INPUT_DISABLED_FLAG_ADDRESS;
+voidObjectFunction freezePedestrian = (voidObjectFunction)0x005DED10;
+voidObjectFunction killPedestrian = (voidObjectFunction)0x005E5320; //0x02 for kill
+
+float* bunnyHopMultiplier = (float*)BUNNY_HOP_MULTIPLIER_ADDRESS;

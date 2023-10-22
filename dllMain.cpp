@@ -27,8 +27,10 @@ $(DXSDK_DIR)Lib\x86
 	* Allow menu to scroll if too big (dynamically)
 	* Input handler class
 	* Move D3D hook etc to own file
+	* Info on screen (coords, etc) w/ LB+RB
 	
 	Ideas:
+	Don't lose weapons on death
 	Player movement speed
 	Player jump size (Moon jump) +0x8c, lower = higher jump
 	Vehicle mass
@@ -68,6 +70,8 @@ WantedLevel wantedLevel;
 Pedestrian player;
 Vehicle vehicle;
 
+BYTE originalBunnyHopInstructions[2];
+
 CheatMenuItem* menuItems[] = {
 	new SpawnCarMenuItem(506),
 	new RepairVehicleMenuItem(),
@@ -79,6 +83,7 @@ CheatMenuItem* menuItems[] = {
 	new StepForwardMenuItem(),
 	new StepUpMenuItem(),
 	new StepDownMenuItem(),
+	new BunnyHopMenuItem(),
 	new SelfDestructMenuItem()
 };
 const int numQuickMenuItems = sizeof(menuItems) / sizeof(CheatMenuItem*);
@@ -105,6 +110,7 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 	new ActiveCheatMenuItem(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
 	new ActiveCheatMenuItem(nullptr, nullptr, &discoMode, "Disco Mode", false),
 	new ActiveCheatMenuItem(&enableTrippy, &disableTrippy, nullptr, "Far Out! Mode", false),
+	new ActiveCheatMenuItem(nullptr, nullptr, spawnExplosionAtTargetPedestrian, "D-pad Right Blows Up Pedestrian", false),
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
@@ -120,6 +126,9 @@ void init() {
 	DWORD hookOffset = (DWORD)&detour - GAME_LOOP_FUNCTION_CALL - 4;
 	overwriteInstructions((void*)GAME_LOOP_FUNCTION_CALL, &hookOffset, 4, &preDetourFunctionCall);
 	displayMessage("~p~Cheat Device~w~ loaded~N~Hit LB + dpad for menu", 0, 0, 0);
+
+	BYTE nops[2] = { 0x90, 0x90 };
+	overwriteInstructions((void*)JUMP_OVER_BHMULTIPLIER_INSTRUCTION_ADDRESS, nops, sizeof(nops), originalBunnyHopInstructions);
 }
 
 void detour()
@@ -245,6 +254,7 @@ void exit() {
 	if (pFont) {
 		pFont->Release();
 	}
+	restoreInstructions((void*)JUMP_OVER_BHMULTIPLIER_INSTRUCTION_ADDRESS, originalBunnyHopInstructions, sizeof(originalBunnyHopInstructions));
 
 	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);

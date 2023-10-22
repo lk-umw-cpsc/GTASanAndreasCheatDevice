@@ -86,55 +86,6 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 	}
 }
 
-//void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
-//	if (numMenuItems == 0) {
-//		return;
-//	}
-//	RECT r = { 100, 100, 1000, 300 };
-//	int fontSize, lineGap;
-//	bool drawingSelectedCheat;
-//	D3DCOLOR chosenColor;
-//	RECT bounds = { 0, 0, 0, 0 };
-//	int widest = 0;
-//
-//	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
-//	widest = bounds.right - bounds.left;
-//	fontSize = bounds.bottom - bounds.top;
-//	lineGap = (int)ceil(.2 * fontSize);
-//	for (int i = 0; i < numMenuItems; i++) {
-//		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
-//		int width = bounds.right - bounds.left;
-//		if (widest < width) {
-//			widest = width;
-//		}
-//	}
-//	D3DRECT menuBackgroundBounds = { 100 - 25, 100 - 25, 25 + 100 + widest, 25 + 100 + numMenuItems * (fontSize + lineGap) };
-//	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
-//	
-//	for (int i = 0; i < numMenuItems; i++) {
-//		drawingSelectedCheat = i == selectedMenuItemIndex;
-//		if (menuItems[i]->canBeActivated()) {
-//			if (drawingSelectedCheat) {
-//				chosenColor = MENU_SELECTED_TEXT_COLOR;
-//			}
-//			else {
-//				chosenColor = MENU_TEXT_COLOR;
-//			}
-//		}
-//		else {
-//			if (drawingSelectedCheat) {
-//				chosenColor = MENU_SELECTED_DEACTIVATED_TEXT_COLOR;
-//			}
-//			else {
-//				chosenColor = MENU_DEACTIVATED_TEXT_COLOR;
-//			}
-//		}
-//		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &r, DT_LEFT, chosenColor);
-//		r.top += fontSize + lineGap;
-//		r.bottom += fontSize + lineGap;
-//	}
-//}
-
 SpawnCarMenuItem::SpawnCarMenuItem(int defaultCarID) {
 	selectedCarID = defaultCarID;
 }
@@ -230,22 +181,34 @@ void RepairVehicleMenuItem::onActivate()
 }
 
 string SelfDestructMenuItem::getText() {
-	if (vehicle.baseAddress) {
-		return "Self Destruct";
-	}
-	else {
-		return "Self Destruct (Vehicle Required)";
-	}
+	return "Self Destruct";
 }
 
 void SelfDestructMenuItem::onActivate() {
-	if (!vehicle.baseAddress) {
-		return;
+	if (vehicle.baseAddress) {
+		unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
+		unsigned int pBlowUpVehicle = (*vtable)[41];
+		voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
+		blowUpVehicle(vehicle.baseAddress, 0, 0);
 	}
-	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
-	unsigned int pBlowUpVehicle = (*vtable)[41];
-	voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
-	blowUpVehicle(vehicle.baseAddress, 0, 0);
+	else {
+		DWORD pedestrian = NULL;
+		const EntityTable table = **ppPedestrianTable;
+		int numSlots = table.numSlots;
+		unsigned int pedestrianArrayBase = table.arrayBaseAddress;
+		byte* slotInUse = table.slotInUse;
+		for (int i = 1; i < numSlots; i++) {
+			if (slotInUse[i] >> 7) {
+				continue;
+			}
+			pedestrian = pedestrianArrayBase + i * PEDESTRIAN_OBJECT_SIZE;
+			break;
+		}
+		if (pedestrian) {
+			Vector3d pos = *player.position;
+			spawnExplosion(pedestrian, 0x13, pos.x, pos.y, pos.z, NULL, NULL, NULL);
+		}
+	}
 }
 
 bool SelfDestructMenuItem::canBeActivated() {
@@ -370,7 +333,7 @@ void VehicleColorMenuItem::onRightInput() {
 string VehicleColorMenuItem::getText() {
 	int color = getCurrentVehicleColor();
 	if (color < 0) {
-		return "Enter vehicle to change color";
+		return "Change Vehicle Color";
 	}
 	return "Vehicle color " + to_string(color);
 }
@@ -392,7 +355,15 @@ void KillEveryoneMenuItem::onActivate() {
 		if (slotInUse[i] >> 7) {
 			continue;
 		}
-		*(float*)(pedestrianArrayBase + i * PEDESTRIAN_OBJECT_SIZE + PEDESTRIAN_HEALTH_OFFSET) = 0.f;
+		DWORD pedestrianBA = pedestrianArrayBase + i * PEDESTRIAN_OBJECT_SIZE;
+		Pedestrian ped;
+		hookPedestrian(pedestrianBA, &ped);
+		if (*ped.health <= 0) {
+			continue;
+		}
+		ped.position->z += 4.5f;
+		ped.velocity->z = -4.f;
+		*(BYTE*)(pedestrianBA + 0x46C) = 0;
 	}
 }
 
@@ -444,4 +415,28 @@ void ChangeGravityMenuItem::onRightInput() {
 
 void ChangeGravityMenuItem::onActivate() {
 	*gravity = defaultGravity;
+}
+
+BunnyHopMenuItem::BunnyHopMenuItem() {
+	defaultMultiplier = 1.0f;
+	*bunnyHopMultiplier = 1.0f;
+}
+
+string BunnyHopMenuItem::getText() {
+	ostringstream out;
+	out.precision(1);
+	out << fixed << *bunnyHopMultiplier;
+	return "Bunny Hop Multiplier: " + move(out).str() + " (A to reset)";
+}
+
+void BunnyHopMenuItem::onLeftInput() {
+	*bunnyHopMultiplier -= .5f;
+}
+
+void BunnyHopMenuItem::onRightInput() {
+	*bunnyHopMultiplier += .5f;
+}
+
+void BunnyHopMenuItem::onActivate() {
+	*bunnyHopMultiplier = *bunnyHopMultiplier;
 }

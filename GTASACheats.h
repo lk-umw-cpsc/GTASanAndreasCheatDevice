@@ -39,3 +39,4 @@ void infiniteNos();
 void driveOnWalls();
 void enableTrippy();
 void disableTrippy();
+void spawnExplosionAtTargetPedestrian();

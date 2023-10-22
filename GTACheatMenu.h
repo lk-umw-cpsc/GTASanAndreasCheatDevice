@@ -101,3 +101,14 @@ public:
 	void onRightInput();
 	void onActivate();
 };
+
+class BunnyHopMenuItem : public CheatMenuItem {
+private:
+	float defaultMultiplier;
+public:
+	BunnyHopMenuItem();
+	string getText();
+	void onLeftInput();
+	void onRightInput();
+	void onActivate();
+};
