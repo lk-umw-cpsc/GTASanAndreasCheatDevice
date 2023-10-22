@@ -16,6 +16,8 @@
 
 using namespace std;
 
+#define END_SCENE_VTABLE_INDEX 42
+
 /*
 $(DXSDK_DIR)Include
 $(DXSDK_DIR)Lib\x86
@@ -243,7 +245,7 @@ void exit() {
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
 	//restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
-	LPDIRECT3DDEVICE9vTable[42] = endSceneAddress;
+	LPDIRECT3DDEVICE9vTable[END_SCENE_VTABLE_INDEX] = endSceneAddress;
 	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
 }
@@ -279,7 +281,7 @@ void d3d9hookinit(char* windowName) {
 	}
 	DWORD** vtable = reinterpret_cast<DWORD**>(dummyDevice);
 	LPDIRECT3DDEVICE9vTable = *vtable;
-	endSceneAddress = LPDIRECT3DDEVICE9vTable[42];
+	endSceneAddress = LPDIRECT3DDEVICE9vTable[END_SCENE_VTABLE_INDEX];
 	jumpBackAddress = endSceneAddress + 6;
 	EndScene = (EndSceneFunction)endSceneAddress;
 #ifdef SACHEATDEVICE_DEBUG
