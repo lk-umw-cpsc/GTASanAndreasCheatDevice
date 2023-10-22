@@ -295,15 +295,16 @@ LPDIRECT3DDEVICE9 pDevice;
 LPD3DXFONT pFont = NULL;
 LPD3DXSPRITE pSprite;
 D3DVIEWPORT9 pViewport;
-int fontSize = 0;
-int lineGap = 0;
+
+#define FONT_SCREEN_HEIGHT_PERCENTAGE	.03f // What % of the screen should the menu text take up?
+#define LINE_SPACING_PERCENTAGE			.25f // What % of the above should be placed between each line of text in the menu?
 
 void APIENTRY drawScene() {
 	if (!pFont) {
 		pDevice->GetViewport(&pViewport);
 		int height = pViewport.Height;
-		fontSize = (int)ceil(.03 * height);
-		lineGap = (int)ceil(.25 * fontSize);
+		int fontSize = (int)ceil(FONT_SCREEN_HEIGHT_PERCENTAGE * height);
+		int lineGap = (int)ceil(LINE_SPACING_PERCENTAGE * fontSize);
 		lineGap = 0;
 		D3DXCreateFont(pDevice, fontSize, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Franklin Gothic"), &pFont);
 		D3DXCreateSprite(pDevice, &pSprite);
