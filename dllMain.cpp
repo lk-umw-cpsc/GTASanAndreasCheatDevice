@@ -66,6 +66,7 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 }
 
 DWORD endSceneAddress, jumpBackAddress;
+DWORD* LPDIRECT3DDEVICE9vTable = NULL;
 typedef HRESULT (WINAPI* EndSceneFunction)(LPDIRECT3DDEVICE9);
 EndSceneFunction EndScene;
 byte overwrittenEndSceneCode[5];
@@ -243,7 +244,8 @@ void exit() {
 		delete quickMenu.getMenuItem(i);
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
-	restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
+	//restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
+	LPDIRECT3DDEVICE9vTable[42] = endSceneAddress;
 	displayMessage("Cheat device unloaded", 0, 0, 0);
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
 }
@@ -278,7 +280,8 @@ void d3d9hookinit(char* windowName) {
 		return;
 	}
 	DWORD** vtable = reinterpret_cast<DWORD**>(dummyDevice);
-	endSceneAddress = (*vtable)[42];
+	LPDIRECT3DDEVICE9vTable = *vtable;
+	endSceneAddress = LPDIRECT3DDEVICE9vTable[42];
 	jumpBackAddress = endSceneAddress + 6;
 	EndScene = (EndSceneFunction)endSceneAddress;
 #ifdef SACHEATDEVICE_DEBUG
