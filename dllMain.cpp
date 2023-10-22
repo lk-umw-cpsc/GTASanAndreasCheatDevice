@@ -290,7 +290,7 @@ void d3d9hookinit(char* windowName) {
 	f << hex << endSceneAddress << endl << (*vtable + 42);
 	f.close();
 #endif
-	(*vtable)[42] = (DWORD)&endSceneDetour;
+	(*vtable)[END_SCENE_VTABLE_INDEX] = (DWORD)&endSceneDetour;
 	dummyDevice->Release();
 }
 
