@@ -26,6 +26,7 @@ $(DXSDK_DIR)Lib\x86
 	* Allow menu items to be disabled
 	* Allow menu to scroll if too big (dynamically)
 	* Allow menu to be left/right/center aligned, top/bottom/center aligned
+	* Input handler class
 	
 	Ideas:
 	Player movement speed
@@ -40,9 +41,7 @@ $(DXSDK_DIR)Lib\x86
 
 const void (*fireRocket)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD) = (const void(*)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD))0x737C80;
 
-bool* menuShowing = reinterpret_cast<bool*>(0x00BAA474);
-
-const void(*detouredFunction)() = (const void(*)()) GAME_LOOP_FUNCTION_ADDRESS;
+const voidFunction detouredFunction = (const voidFunction) GAME_LOOP_FUNCTION_ADDRESS;
 
 bool displayMenu, displayQuickMenu;
 
@@ -61,6 +60,10 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 	}
 	return TRUE;
 }
+
+DWORD endSceneAddress, jumpBackAddress;
+void (*EndScene)(LPDIRECT3DDEVICE9);
+byte overwrittenEndSceneCode[5];
 
 WantedLevel wantedLevel;
 Pedestrian player;
@@ -225,10 +228,28 @@ void hack() {
 	vehicleBaseAddressLastFrame = vehicleBaseAddress;
 }
 
+void exit() {
+	for (int i = 0; i < numMainMenuItems; i++) {
+		ActiveCheatMenuItem* menuItem = (ActiveCheatMenuItem*)mainMenu.getMenuItem(i);
+		menuItem->setEnabled(false);
+		delete menuItem;
+	}
+	for (int i = 0; i < numQuickMenuItems; i++) {
+		delete quickMenu.getMenuItem(i);
+	}
+	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
+	restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
+	displayMessage("Cheat device unloaded", 0, 0, 0);
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
+}
 
-DWORD endSceneAddress, jumpBackAddress;
-void (*EndScene)(LPDIRECT3DDEVICE9);
-byte overwrittenEndSceneCode[5];
+void unload() {
+	HMODULE h;
+	char name[MAX_PATH];
+	GetModuleFileName(hDLL, name, MAX_PATH);
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, name, &h);
+	FreeLibraryAndExitThread(hDLL, 0);
+}
 
 void d3d9hookinit() {
 	IDirect3D9* d3d = Direct3DCreate9(D3D_SDK_VERSION);
@@ -309,27 +330,4 @@ void endSceneDetour() {
 		mov eax, [ebp + 0x08]
 		jmp jumpBackAddress
 	}
-}
-
-void exit() {
-	for (int i = 0; i < numMainMenuItems; i++) {
-		ActiveCheatMenuItem* menuItem = (ActiveCheatMenuItem*)mainMenu.getMenuItem(i);
-		menuItem->setEnabled(false);
-		delete menuItem;
-	}
-	for (int i = 0; i < numQuickMenuItems; i++) {
-		delete quickMenu.getMenuItem(i);
-	}
-	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
-	restoreInstructions((void*)endSceneAddress, overwrittenEndSceneCode, sizeof(overwrittenEndSceneCode));
-	displayMessage("Cheat device unloaded", 0, 0, 0);
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)unload, 0, 0, 0);
-}
-
-void unload() {
-	HMODULE h;
-	char name[MAX_PATH];
-	GetModuleFileName(hDLL, name, MAX_PATH);
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, name, &h);
-	FreeLibraryAndExitThread(hDLL, 0);
 }
