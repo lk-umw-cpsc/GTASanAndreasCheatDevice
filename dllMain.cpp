@@ -290,9 +290,6 @@ void d3d9hookinit(char* windowName) {
 	f << hex << endSceneAddress << endl << (*vtable + 42);
 	f.close();
 #endif
-	byte jump[5] = { 0xe9, 0, 0, 0, 0 };
-	DWORD jumpOffset = (DWORD)&endSceneDetour - endSceneAddress + FAR_JUMP_OFFSET + 2;
-	memcpy(&jump[1], &jumpOffset, 4);
 	(*vtable)[42] = (DWORD)&endSceneDetour;
 	dummyDevice->Release();
 }
