@@ -8,13 +8,15 @@
 #define MENU_WHITE_TEXT_TOKEN "~w~"
 #define MENU_PURPLE_TEXT_TOKEN "~p~"
 
-#define MENU_TEXT_COLOR				D3DCOLOR_ARGB(255, 255, 255, 255)
-#define MENU_SELECTED_TEXT_COLOR	D3DCOLOR_ARGB(255, 203, 99, 255)
-#define MENU_BACKGROUND_COLOR		D3DCOLOR_XRGB(32, 32, 32)
+#define MENU_TEXT_COLOR								D3DCOLOR_ARGB(255, 255, 255, 255)
+#define MENU_DEACTIVATED_TEXT_COLOR					D3DCOLOR_XRGB(140, 140, 140)
+#define MENU_SELECTED_TEXT_COLOR					D3DCOLOR_ARGB(255, 189, 136, 215)
+#define MENU_SELECTED_DEACTIVATED_TEXT_COLOR		D3DCOLOR_XRGB(183, 156, 196)
+#define MENU_BACKGROUND_COLOR						D3DCOLOR_XRGB(32, 32, 32)
 
 class GTASACheatMenu : public CheatMenu {
 public:
-	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems);
+	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor);
 	void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite);
 };
 
@@ -34,12 +36,14 @@ class RepairVehicleMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
+	bool canBeActivated();
 };
 
 class SelfDestructMenuItem : public CheatMenuItem {
 public:
 	string getText();
 	void onActivate();
+	bool canBeActivated();
 };
 
 class StepForwardMenuItem : public CheatMenuItem {
@@ -72,6 +76,7 @@ public:
 	void onLeftInput();
 	void onRightInput();
 	int getCurrentVehicleColor();
+	bool canBeActivated();
 };
 
 class KillEveryoneMenuItem : public CheatMenuItem {

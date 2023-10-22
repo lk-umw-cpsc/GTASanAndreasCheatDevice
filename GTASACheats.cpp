@@ -241,7 +241,7 @@ void noCarDamageDetour() {
 
 void fixCar() {
 	DWORD baseAddress = vehicle.baseAddress;
-	if (baseAddress && baseAddress != vehicleBALastFrame) {
+	if (baseAddress && baseAddress != vehicleBaseAddressLastFrame) {
 		DWORD** vtable = reinterpret_cast<DWORD**>(baseAddress);
 		DWORD pRepairVehicle = (*vtable)[50];
 		voidObjectFunction repairVehicle = (voidObjectFunction)pRepairVehicle;
@@ -317,7 +317,7 @@ void rhinoCar() {
 	DWORD vehicleBaseAddress = vehicle.baseAddress;
 	if (vehicleBaseAddress) {
 		DWORD touchedObjectBaseAddress = *vehicle.pTouch;
-		if (vehicleBaseAddress != vehicleBALastFrame) {
+		if (vehicleBaseAddress != vehicleBaseAddressLastFrame) {
 			*vehicle.mass *= 8;
 		}
 		if (touchedObjectBaseAddress) {
@@ -462,7 +462,7 @@ void dpadLeftToToggleCarLock() {
 }
 
 void autoLockCarDoors() {
-	if (vehicle.baseAddress && vehicle.baseAddress != vehicleBALastFrame) {
+	if (vehicle.baseAddress && vehicle.baseAddress != vehicleBaseAddressLastFrame) {
 		if (vehicle.objectClass == CLASS_BOAT || vehicle.objectClass == CLASS_MOTORCYCLE || vehicle.objectClass == CLASS_BICYCLE) {
 			return;
 		}

@@ -12,6 +12,7 @@ public:
 	virtual void onLeftInput();
 	virtual void onRightInput();
 	virtual void onActivate();
+	virtual bool canBeActivated();
 };
 
 class ActiveCheatMenuItem : public CheatMenuItem {
@@ -32,14 +33,23 @@ public:
 	void onActivate();
 };
 
+#define HORIZONTAL_ANCHOR_LEFT		0
+#define HORIZONTAL_ANCHOR_CENTER	1
+#define HORIZONTAL_ANCHOR_RIGHT		2
+
+#define VERTICAL_ANCHOR_TOP			0
+#define VERTICAL_ANCHOR_CENTER		1
+#define VERTICAL_ANCHOR_BOTTOM		2
+
 class CheatMenu {
 protected:
 	CheatMenuItem** menuItems;
 	CheatMenuItem* selectedMenuItem;
 	int numMenuItems;
 	int selectedMenuItemIndex;
+	int horizontalAnchor, verticalAnchor;
 public:
-	CheatMenu(CheatMenuItem** menuItems, int numMenuItems);
+	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor);
 	virtual void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) = 0;
 	void menuUp();
 	void menuDown();

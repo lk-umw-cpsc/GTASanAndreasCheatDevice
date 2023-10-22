@@ -35,4 +35,4 @@ extern WORD buttonsPressed;
 extern WORD buttonsReleased;
 extern WORD previousButtonState;
 
-extern DWORD vehicleBALastFrame;
+extern DWORD vehicleBaseAddressLastFrame;

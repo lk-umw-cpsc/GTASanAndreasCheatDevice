@@ -29,7 +29,6 @@ $(DXSDK_DIR)Lib\x86
 	
 	Ideas:
 	Player movement speed
-	Gravity 543087 gravity application instruction
 	Player jump size (Moon jump) +0x8c, lower = higher jump
 	Vehicle mass
 	Car speed
@@ -88,7 +87,7 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 	new ActiveCheatMenuItem(nullptr, nullptr, &rhinoCar, "Rhino Car", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, &holdRBForAirBrake, "Hold RB for Air Brake", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, &repellantTouch, "Repellant Touch", false),
-	new ActiveCheatMenuItem(nullptr, nullptr, &driveOnWalls, "Drive On Walls", false),
+	new ActiveCheatMenuItem(nullptr, nullptr, &driveOnWalls, "Drive on Walls", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, &infiniteNos, "Infinite NOS", false),
 	new ActiveCheatMenuItem(nullptr, &disableNoWantedLevel, &noWantedLevel, "No Wanted Level", true),
 	new ActiveCheatMenuItem(nullptr, &infiniteHealthOff, &infiniteHealth, "Infinite Health & Armor", true),
@@ -99,15 +98,15 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 	new ActiveCheatMenuItem(&enableInfiniteAmmo, &disableInfiniteAmmo, nullptr, "Infinite Ammo", true),
 	new ActiveCheatMenuItem(&enableEnterAnyVehicle, &disableEnterAnyVehicle, nullptr, "Enter Any Vehicle", true),
 	new ActiveCheatMenuItem(&installPropertyPurchaseDetour, &uninstallPropertyPurchaseDetour, nullptr, "Purchase Any Property", true),
-	new ActiveCheatMenuItem(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere BROKEN", false),
+	//new ActiveCheatMenuItem(&enableExploreAnywhere, &disableExploreAnywhere, nullptr, "Explore Anywhere BROKEN", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, &dpadLeftToToggleCarLock, "D-pad Left Toggles Door Lock", true),
 	new ActiveCheatMenuItem(nullptr, nullptr, &autoLockCarDoors, "Automatically Lock Doors", true),
 	new ActiveCheatMenuItem(nullptr, nullptr, &discoMode, "Disco Mode", false),
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
-GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*));
-GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems);
+GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), HORIZONTAL_ANCHOR_RIGHT, VERTICAL_ANCHOR_CENTER);
+GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, HORIZONTAL_ANCHOR_LEFT, VERTICAL_ANCHOR_TOP);
 
 DWORD preDetourFunctionCall;
 
@@ -133,7 +132,7 @@ WORD buttonsPressed;
 WORD buttonsReleased;
 WORD previousButtonState;
 WORD carSpawnID = 506; // Super GT
-DWORD vehicleBALastFrame = NULL;
+DWORD vehicleBaseAddressLastFrame = NULL;
 
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
@@ -223,7 +222,7 @@ void hack() {
 			displayMenu = false;
 		}
 	}
-	vehicleBALastFrame = vehicleBaseAddress;
+	vehicleBaseAddressLastFrame = vehicleBaseAddress;
 }
 
 

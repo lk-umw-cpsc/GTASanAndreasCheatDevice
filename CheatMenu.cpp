@@ -4,7 +4,6 @@
 
 using namespace std;
 
-
 string CheatMenuItem::getText() {
 	return "";
 }
@@ -21,27 +20,39 @@ void CheatMenuItem::onActivate() {
 
 }
 
-CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems) {
+bool CheatMenuItem::canBeActivated() {
+	return true;
+}
+
+CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor) {
 	this->menuItems = menuItems;
 	this->numMenuItems = numMenuItems;
 	selectedMenuItem = menuItems[0];
 	selectedMenuItemIndex = 0;
+	this->horizontalAnchor = horizontalAnchor;
+	this->verticalAnchor = verticalAnchor;
 }
 
 void CheatMenu::menuUp() {
-	selectedMenuItemIndex--;
-	if (selectedMenuItemIndex == -1) {
-		selectedMenuItemIndex = numMenuItems - 1;
-	}
-	selectedMenuItem = menuItems[selectedMenuItemIndex];
+	int oldIndex = selectedMenuItemIndex;
+	do {
+		selectedMenuItemIndex--;
+		if (selectedMenuItemIndex == -1) {
+			selectedMenuItemIndex = numMenuItems - 1;
+		}
+		selectedMenuItem = menuItems[selectedMenuItemIndex];
+	} while (!selectedMenuItem->canBeActivated() && selectedMenuItemIndex != oldIndex);
 }
 
 void CheatMenu::menuDown() {
-	selectedMenuItemIndex++;
-	if (selectedMenuItemIndex == numMenuItems) {
-		selectedMenuItemIndex = 0;
-	}
-	selectedMenuItem = menuItems[selectedMenuItemIndex];
+	int oldIndex = selectedMenuItemIndex;
+	do {
+		selectedMenuItemIndex++;
+		if (selectedMenuItemIndex == numMenuItems) {
+			selectedMenuItemIndex = 0;
+		}
+		selectedMenuItem = menuItems[selectedMenuItemIndex];
+	} while (!selectedMenuItem->canBeActivated() && selectedMenuItemIndex != oldIndex);
 }
 
 void CheatMenu::selectedMenuItemLeft() {
@@ -59,7 +70,6 @@ void CheatMenu::activateSelectedMenuItem() {
 CheatMenuItem* CheatMenu::getMenuItem(int index) {
 	return menuItems[index];
 }
-
 
 ActiveCheatMenuItem::ActiveCheatMenuItem(voidFunction onEnable, voidFunction onDisable, voidFunction onFrame, string name, bool enabled) {
 	this->onEnable = onEnable;

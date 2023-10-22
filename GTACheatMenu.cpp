@@ -5,50 +5,135 @@
 
 using namespace std;
 
-GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems) : CheatMenu(menuItems, numMenuItems) {
+GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor) : CheatMenu(menuItems, numMenuItems, horizontalAnchor, verticalAnchor) {
+
 }
+
+#define MENU_PADDING 25
 
 void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
 	if (numMenuItems == 0) {
 		return;
 	}
-	RECT r = { 100, 100, 1000, 300 };
-	D3DCOLOR color = D3DCOLOR_ARGB(255, 255, 255, 255);
-	D3DCOLOR color2 = D3DCOLOR_ARGB(255, 203, 99, 255);
+	D3DVIEWPORT9 viewport;
+	pDevice->GetViewport(&viewport);
+	int screenWidth = viewport.Width;
+	int screenHeight = viewport.Height;
 	int fontSize, lineGap;
-	//D3DXSPRITE_BILLBOARD | 
 	bool drawingSelectedCheat;
 	D3DCOLOR chosenColor;
-	RECT bounds = { 0, 0, 0, 0 };
-	int widest = 0;
+	RECT measurement = { 0, 0, 0, 0 };
+	int menuWidth = 0;
 
-	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
-	widest = bounds.right - bounds.left;
-	fontSize = bounds.bottom - bounds.top;
-	lineGap = ceil(.2 * fontSize);
+	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+	menuWidth = measurement.right - measurement.left;
+	fontSize = measurement.bottom - measurement.top;
+	lineGap = (int)ceil(.2 * fontSize);
 	for (int i = 0; i < numMenuItems; i++) {
-		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
-		int width = bounds.right - bounds.left;
-		if (widest < width) {
-			widest = width;
+		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+		int width = measurement.right - measurement.left;
+		if (menuWidth < width) {
+			menuWidth = width;
 		}
 	}
-	D3DRECT menuBackgroundBounds = { 100 - 25, 100 - 25, 25 + 100 + widest, 25 + 100 + numMenuItems * (fontSize + lineGap) };
+	menuWidth += 2 * MENU_PADDING;
+	int menuHeight = (fontSize + lineGap) * numMenuItems + MENU_PADDING * 2;
+	int menuX = 0, menuY = 0;
+	switch (horizontalAnchor) {
+	case HORIZONTAL_ANCHOR_LEFT:
+		menuX = MENU_PADDING;
+		break;
+	case HORIZONTAL_ANCHOR_CENTER:
+		menuX = (screenWidth - menuWidth) / 2;
+		break;
+	case HORIZONTAL_ANCHOR_RIGHT:
+		menuX = screenWidth - menuWidth - MENU_PADDING;
+	}
+	switch (verticalAnchor) {
+	case VERTICAL_ANCHOR_TOP:
+		menuY = MENU_PADDING;
+		break;
+	case VERTICAL_ANCHOR_CENTER:
+		menuY = (screenHeight - menuHeight) / 2;
+		break;
+	case VERTICAL_ANCHOR_BOTTOM:
+		menuY = screenHeight - menuHeight - MENU_PADDING;
+	}
+	D3DRECT menuBackgroundBounds = { menuX, menuY, menuX + menuWidth, menuY + menuHeight };
 	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
-	
+
+	RECT drawLocation = { menuX + MENU_PADDING, menuY + MENU_PADDING, screenWidth, screenHeight };
 	for (int i = 0; i < numMenuItems; i++) {
 		drawingSelectedCheat = i == selectedMenuItemIndex;
-		if (drawingSelectedCheat) {
-			chosenColor = MENU_SELECTED_TEXT_COLOR;
+		if (menuItems[i]->canBeActivated()) {
+			if (drawingSelectedCheat) {
+				chosenColor = MENU_SELECTED_TEXT_COLOR;
+			}
+			else {
+				chosenColor = MENU_TEXT_COLOR;
+			}
 		}
 		else {
-			chosenColor = MENU_TEXT_COLOR;
+			if (drawingSelectedCheat) {
+				chosenColor = MENU_SELECTED_DEACTIVATED_TEXT_COLOR;
+			}
+			else {
+				chosenColor = MENU_DEACTIVATED_TEXT_COLOR;
+			}
 		}
-		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &r, DT_LEFT, chosenColor);
-		r.top += fontSize + lineGap;
-		r.bottom += fontSize + lineGap;
+		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &drawLocation, DT_LEFT, chosenColor);
+		drawLocation.top += fontSize + lineGap;
 	}
 }
+
+//void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
+//	if (numMenuItems == 0) {
+//		return;
+//	}
+//	RECT r = { 100, 100, 1000, 300 };
+//	int fontSize, lineGap;
+//	bool drawingSelectedCheat;
+//	D3DCOLOR chosenColor;
+//	RECT bounds = { 0, 0, 0, 0 };
+//	int widest = 0;
+//
+//	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+//	widest = bounds.right - bounds.left;
+//	fontSize = bounds.bottom - bounds.top;
+//	lineGap = (int)ceil(.2 * fontSize);
+//	for (int i = 0; i < numMenuItems; i++) {
+//		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &bounds, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+//		int width = bounds.right - bounds.left;
+//		if (widest < width) {
+//			widest = width;
+//		}
+//	}
+//	D3DRECT menuBackgroundBounds = { 100 - 25, 100 - 25, 25 + 100 + widest, 25 + 100 + numMenuItems * (fontSize + lineGap) };
+//	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
+//	
+//	for (int i = 0; i < numMenuItems; i++) {
+//		drawingSelectedCheat = i == selectedMenuItemIndex;
+//		if (menuItems[i]->canBeActivated()) {
+//			if (drawingSelectedCheat) {
+//				chosenColor = MENU_SELECTED_TEXT_COLOR;
+//			}
+//			else {
+//				chosenColor = MENU_TEXT_COLOR;
+//			}
+//		}
+//		else {
+//			if (drawingSelectedCheat) {
+//				chosenColor = MENU_SELECTED_DEACTIVATED_TEXT_COLOR;
+//			}
+//			else {
+//				chosenColor = MENU_DEACTIVATED_TEXT_COLOR;
+//			}
+//		}
+//		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &r, DT_LEFT, chosenColor);
+//		r.top += fontSize + lineGap;
+//		r.bottom += fontSize + lineGap;
+//	}
+//}
 
 SpawnCarMenuItem::SpawnCarMenuItem(int defaultCarID) {
 	selectedCarID = defaultCarID;
@@ -120,13 +205,17 @@ string SpawnCarMenuItem::getSelectedVehicleName() {
 		return nameString;
 	}
 	else {
-		return "Can't spawn: Car " + to_string(selectedCarID) + " is invalid";
+		return "INVALID ID";
 	}
 }
 
 string RepairVehicleMenuItem::getText()
 {
 	return "Repair Vehicle";
+}
+
+bool RepairVehicleMenuItem::canBeActivated() {
+	return vehicle.baseAddress != NULL;
 }
 
 void RepairVehicleMenuItem::onActivate()
@@ -141,7 +230,12 @@ void RepairVehicleMenuItem::onActivate()
 }
 
 string SelfDestructMenuItem::getText() {
-	return "Self Destruct";
+	if (vehicle.baseAddress) {
+		return "Self Destruct";
+	}
+	else {
+		return "Self Destruct (Vehicle Required)";
+	}
 }
 
 void SelfDestructMenuItem::onActivate() {
@@ -152,6 +246,10 @@ void SelfDestructMenuItem::onActivate() {
 	unsigned int pBlowUpVehicle = (*vtable)[41];
 	voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
 	blowUpVehicle(vehicle.baseAddress, 0, 0);
+}
+
+bool SelfDestructMenuItem::canBeActivated() {
+	return vehicle.baseAddress != NULL;
 }
 
 void StepForwardMenuItem::onActivate() {
@@ -272,9 +370,13 @@ void VehicleColorMenuItem::onRightInput() {
 string VehicleColorMenuItem::getText() {
 	int color = getCurrentVehicleColor();
 	if (color < 0) {
-		return "(Enter vehicle to change color)";
+		return "Enter vehicle to change color";
 	}
 	return "Vehicle color " + to_string(color);
+}
+
+bool VehicleColorMenuItem::canBeActivated() {
+	return vehicle.baseAddress != NULL;
 }
 
 string KillEveryoneMenuItem::getText() {
