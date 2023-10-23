@@ -185,30 +185,13 @@ string SelfDestructMenuItem::getText() {
 }
 
 void SelfDestructMenuItem::onActivate() {
-	if (vehicle.baseAddress) {
-		unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
-		unsigned int pBlowUpVehicle = (*vtable)[41];
-		voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
-		blowUpVehicle(vehicle.baseAddress, 0, 0);
+	if (!vehicle.baseAddress) {
+		return;
 	}
-	else {
-		DWORD pedestrian = NULL;
-		const EntityTable table = **ppPedestrianTable;
-		int numSlots = table.numSlots;
-		unsigned int pedestrianArrayBase = table.arrayBaseAddress;
-		byte* slotInUse = table.slotInUse;
-		for (int i = 1; i < numSlots; i++) {
-			if (slotInUse[i] >> 7) {
-				continue;
-			}
-			pedestrian = pedestrianArrayBase + i * PEDESTRIAN_OBJECT_SIZE;
-			break;
-		}
-		if (pedestrian) {
-			Vector3d pos = *player.position;
-			spawnExplosion(pedestrian, 0x13, pos.x, pos.y, pos.z, NULL, NULL, NULL);
-		}
-	}
+	unsigned int** vtable = reinterpret_cast<unsigned int**>(vehicle.baseAddress);
+	unsigned int pBlowUpVehicle = (*vtable)[41];
+	voidObjectFunctionDWORDDWORD blowUpVehicle = (voidObjectFunctionDWORDDWORD)pBlowUpVehicle;
+	blowUpVehicle(vehicle.baseAddress, 0, 0);
 }
 
 bool SelfDestructMenuItem::canBeActivated() {
