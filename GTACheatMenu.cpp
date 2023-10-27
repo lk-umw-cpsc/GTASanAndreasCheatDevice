@@ -5,12 +5,12 @@
 
 using namespace std;
 
-GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style) : CheatMenu(menuItems, numMenuItems, style) {
+GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuHotKeys* hotKeys) : CheatMenu(menuItems, numMenuItems, style, hotKeys) {
 
 }
 
 void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice) {
-	if (numMenuItems == 0) {
+	if (!showing || numMenuItems == 0) {
 		return;
 	}
 	D3DVIEWPORT9 viewport;

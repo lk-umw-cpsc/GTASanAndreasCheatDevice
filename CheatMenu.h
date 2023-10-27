@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <d3dx9core.h>
+#include <Xinput.h>
 
 using namespace std;
 
@@ -25,6 +26,40 @@ typedef struct MenuStyle {
 	float lineSpacing;
 	LPD3DXFONT pFont;
 	LPD3DXSPRITE pSprite;
+};
+
+#define INPUT_TYPE_BUTTON_HELD 0
+#define INPUT_TYPE_BUTTON_PRESSED 1
+#define INPUT_TYPE_BUTTON_RELEASED 2
+
+typedef struct ButtonInput {
+	ButtonInput() : inputType(0), button(0) {
+
+	}
+	ButtonInput(BYTE a, WORD b) : inputType(a), button(b) {
+
+	}
+	BYTE inputType;
+	WORD button;
+};
+
+typedef struct MenuHotKey {
+	const ButtonInput* inputs;
+	const int numInputs;
+};
+
+bool inputActive(ButtonInput input, DWORD buttonStates[3]);
+bool hotKeyActivated(const MenuHotKey* hk, DWORD buttonStates[3]);
+
+MenuHotKey** createHotKeys(string s);
+
+typedef struct CheatMenuHotKeys {
+	const MenuHotKey* menuUp;
+	const MenuHotKey* menuDown;
+	const MenuHotKey* menuLeft;
+	const MenuHotKey* menuRight;
+	const MenuHotKey* menuActivate;
+	const MenuHotKey* menuClose;
 };
 
 class CheatMenuItem {
@@ -59,10 +94,12 @@ protected:
 	CheatMenuItem** menuItems;
 	CheatMenuItem* selectedMenuItem;
 	MenuStyle* style;
+	CheatMenuHotKeys* hotKeys;
 	int numMenuItems;
 	int selectedMenuItemIndex;
+	bool showing;
 public:
-	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style);
+	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuHotKeys* hotKeys);
 	virtual void show(LPDIRECT3DDEVICE9 pDevice) = 0;
 	void menuUp();
 	void menuDown();
@@ -70,5 +107,6 @@ public:
 	void selectedMenuItemRight();
 	void activateSelectedMenuItem();
 	void releaseD3DObjects();
+	void handleInput(DWORD buttonsHeld, DWORD buttonsPressed, DWORD buttonsReleased);
 	CheatMenuItem* getMenuItem(int index);
 };

@@ -112,6 +112,63 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
+MenuHotKey mainMenuUpHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_UP }
+	},
+	2
+};
+
+MenuHotKey mainMenuDownHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_DOWN }
+	},
+	2
+};
+
+MenuHotKey mainMenuLeftHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_LEFT }
+	},
+	2
+};
+
+MenuHotKey mainMenuRightHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_RIGHT }
+	},
+	2
+};
+
+MenuHotKey mainMenuActivateHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_A }
+	},
+	2
+};
+
+MenuHotKey mainMenuCloseHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_B }
+	},
+	2
+};
+
+CheatMenuHotKeys mainMenuHotKeys = { 
+	&mainMenuUpHK,
+	&mainMenuDownHK,
+	&mainMenuLeftHK,
+	&mainMenuRightHK,
+	&mainMenuActivateHK,
+	&mainMenuCloseHK,
+};
+
 MenuStyle mainMenuStyle = {
 	HORIZONTAL_ANCHOR_LEFT,
 	VERTICAL_ANCHOR_TOP,
@@ -121,6 +178,63 @@ MenuStyle mainMenuStyle = {
 	.02f,
 	.025f,
 	.2f,
+};
+
+MenuHotKey quickMenuUpHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_UP }
+	},
+	2
+};
+
+MenuHotKey quickMenuDownHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_DOWN }
+	},
+	2
+};
+
+MenuHotKey quickMenuLeftHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_LEFT }
+	},
+	2
+};
+
+MenuHotKey quickMenuRightHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_RIGHT }
+	},
+	2
+};
+
+MenuHotKey quickMenuActivateHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_A }
+	},
+	2
+};
+
+MenuHotKey quickMenuCloseHK = {
+	new ButtonInput[2] {
+		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
+		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_B }
+	},
+	2
+};
+
+CheatMenuHotKeys quickMenuHotKeys = {
+	&quickMenuUpHK,
+	&quickMenuDownHK,
+	&quickMenuLeftHK,
+	&quickMenuRightHK,
+	&quickMenuActivateHK,
+	&quickMenuCloseHK,
 };
 
 MenuStyle quickMenuStyle = {
@@ -134,8 +248,8 @@ MenuStyle quickMenuStyle = {
 	.2f
 };
 
-GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), &quickMenuStyle);
-GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, &mainMenuStyle);
+GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), &quickMenuStyle, &quickMenuHotKeys);
+GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, &mainMenuStyle, &mainMenuHotKeys);
 
 DWORD preDetourFunctionCall;
 
@@ -199,61 +313,11 @@ void hack() {
 			}
 		}
 	}
+
+	mainMenu.handleInput(buttonsHeld, buttonsPressed, buttonsReleased);
+	quickMenu.handleInput(buttonsHeld, buttonsPressed, buttonsReleased);
+
 	previousButtonState = gamepadState.Gamepad.wButtons;
-	if (buttonsHeld & XINPUT_GAMEPAD_LEFT_SHOULDER) {
-		if (displayMenu) {
-			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
-				mainMenu.menuUp();
-			} else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
-				mainMenu.menuDown();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
-				mainMenu.selectedMenuItemLeft();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-				mainMenu.selectedMenuItemRight();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_A) {
-				mainMenu.activateSelectedMenuItem();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_B) {
-				displayMenu = false;
-			}
-		}
-		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
-			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-			displayMenu = true;
-			displayQuickMenu = false;
-		}
-	}
-	previousButtonState = gamepadState.Gamepad.wButtons;
-	if (buttonsHeld & XINPUT_GAMEPAD_RIGHT_SHOULDER) {
-		if (displayQuickMenu) {
-			if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP) {
-				quickMenu.menuUp();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN) {
-				quickMenu.menuDown();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT) {
-				quickMenu.selectedMenuItemLeft();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-				quickMenu.selectedMenuItemRight();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_A) {
-				quickMenu.activateSelectedMenuItem();
-			}
-			else if (buttonsPressed & XINPUT_GAMEPAD_B) {
-				displayQuickMenu = false;
-			}
-		}
-		else if (buttonsPressed & XINPUT_GAMEPAD_DPAD_UP || buttonsPressed & XINPUT_GAMEPAD_DPAD_DOWN ||
-			buttonsPressed & XINPUT_GAMEPAD_DPAD_LEFT || buttonsPressed & XINPUT_GAMEPAD_DPAD_RIGHT) {
-			displayQuickMenu = true;
-			displayMenu = false;
-		}
-	}
 	vehicleBaseAddressLastFrame = vehicleBaseAddress;
 }
 
@@ -288,10 +352,6 @@ void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice) {
 	if (*gamePaused) {
 		return;
 	}
-	if (displayMenu) {
-		mainMenu.show(pDevice);
-	}
-	if (displayQuickMenu) {
-		quickMenu.show(pDevice);
-	}
+	mainMenu.show(pDevice);
+	quickMenu.show(pDevice);
 }
