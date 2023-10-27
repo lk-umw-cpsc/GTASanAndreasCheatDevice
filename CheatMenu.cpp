@@ -24,13 +24,16 @@ bool CheatMenuItem::canBeActivated() {
 	return true;
 }
 
-CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor) {
+CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin) {
 	this->menuItems = menuItems;
 	this->numMenuItems = numMenuItems;
 	selectedMenuItem = menuItems[0];
 	selectedMenuItemIndex = 0;
 	this->horizontalAnchor = horizontalAnchor;
 	this->verticalAnchor = verticalAnchor;
+	this->padding = padding;
+	this->horizontalMargin = horizontalMargin;
+	this->verticalMargin = verticalMargin;
 }
 
 void CheatMenu::menuUp() {

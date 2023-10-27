@@ -114,8 +114,8 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
-GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), HORIZONTAL_ANCHOR_RIGHT, VERTICAL_ANCHOR_CENTER);
-GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, HORIZONTAL_ANCHOR_LEFT, VERTICAL_ANCHOR_TOP);
+GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), HORIZONTAL_ANCHOR_RIGHT, VERTICAL_ANCHOR_CENTER, 25, 50, 50);
+GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, HORIZONTAL_ANCHOR_LEFT, VERTICAL_ANCHOR_TOP, 25, 50, 50);
 
 DWORD preDetourFunctionCall;
 

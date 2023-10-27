@@ -5,11 +5,9 @@
 
 using namespace std;
 
-GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor) : CheatMenu(menuItems, numMenuItems, horizontalAnchor, verticalAnchor) {
+GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin) : CheatMenu(menuItems, numMenuItems, horizontalAnchor, verticalAnchor, padding, horizontalMargin, verticalMargin) {
 
 }
-
-#define MENU_PADDING 25
 
 void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
 	if (numMenuItems == 0) {
@@ -36,33 +34,33 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 			menuWidth = width;
 		}
 	}
-	menuWidth += 2 * MENU_PADDING;
-	int menuHeight = (fontSize + lineGap) * numMenuItems + MENU_PADDING * 2;
+	menuWidth += 2 * padding;
+	int menuHeight = (fontSize + lineGap) * numMenuItems + padding * 2;
 	int menuX = 0, menuY = 0;
 	switch (horizontalAnchor) {
 	case HORIZONTAL_ANCHOR_LEFT:
-		menuX = MENU_PADDING;
+		menuX = horizontalMargin;
 		break;
 	case HORIZONTAL_ANCHOR_CENTER:
 		menuX = (screenWidth - menuWidth) / 2;
 		break;
 	case HORIZONTAL_ANCHOR_RIGHT:
-		menuX = screenWidth - menuWidth - MENU_PADDING;
+		menuX = screenWidth - menuWidth - horizontalMargin;
 	}
 	switch (verticalAnchor) {
 	case VERTICAL_ANCHOR_TOP:
-		menuY = MENU_PADDING;
+		menuY = verticalMargin;
 		break;
 	case VERTICAL_ANCHOR_CENTER:
 		menuY = (screenHeight - menuHeight) / 2;
 		break;
 	case VERTICAL_ANCHOR_BOTTOM:
-		menuY = screenHeight - menuHeight - MENU_PADDING;
+		menuY = screenHeight - menuHeight - verticalMargin;
 	}
 	D3DRECT menuBackgroundBounds = { menuX, menuY, menuX + menuWidth, menuY + menuHeight };
 	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
 
-	RECT drawLocation = { menuX + MENU_PADDING, menuY + MENU_PADDING, screenWidth, screenHeight };
+	RECT drawLocation = { menuX + padding, menuY + padding, screenWidth, screenHeight };
 	for (int i = 0; i < numMenuItems; i++) {
 		drawingSelectedCheat = i == selectedMenuItemIndex;
 		if (menuItems[i]->canBeActivated()) {

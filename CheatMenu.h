@@ -48,8 +48,11 @@ protected:
 	int numMenuItems;
 	int selectedMenuItemIndex;
 	int horizontalAnchor, verticalAnchor;
+	int padding;
+	int horizontalMargin;
+	int verticalMargin;
 public:
-	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor);
+	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin);
 	virtual void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) = 0;
 	void menuUp();
 	void menuDown();
