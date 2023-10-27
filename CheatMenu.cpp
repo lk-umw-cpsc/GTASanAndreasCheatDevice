@@ -24,16 +24,23 @@ bool CheatMenuItem::canBeActivated() {
 	return true;
 }
 
-CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin) {
+CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style) {
 	this->menuItems = menuItems;
 	this->numMenuItems = numMenuItems;
 	selectedMenuItem = menuItems[0];
 	selectedMenuItemIndex = 0;
-	this->horizontalAnchor = horizontalAnchor;
-	this->verticalAnchor = verticalAnchor;
-	this->padding = padding;
-	this->horizontalMargin = horizontalMargin;
-	this->verticalMargin = verticalMargin;
+	this->style = style;
+}
+
+void CheatMenu::releaseD3DObjects() {
+	if (style) {
+		if (style->pFont) {
+			style->pFont->Release();
+		}
+		if (style->pSprite) {
+			style->pSprite->Release();
+		}
+	}
 }
 
 void CheatMenu::menuUp() {

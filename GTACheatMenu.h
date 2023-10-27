@@ -16,8 +16,8 @@
 
 class GTASACheatMenu : public CheatMenu {
 public:
-	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin);
-	void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite);
+	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style);
+	void show(LPDIRECT3DDEVICE9 pDevice);
 };
 
 class SpawnCarMenuItem : public CheatMenuItem {

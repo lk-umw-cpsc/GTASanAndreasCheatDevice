@@ -5,16 +5,24 @@
 
 using namespace std;
 
-GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin) : CheatMenu(menuItems, numMenuItems, horizontalAnchor, verticalAnchor, padding, horizontalMargin, verticalMargin) {
+GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style) : CheatMenu(menuItems, numMenuItems, style) {
 
 }
 
-void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) {
+void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice) {
 	if (numMenuItems == 0) {
 		return;
 	}
 	D3DVIEWPORT9 viewport;
 	pDevice->GetViewport(&viewport);
+	if (!style->pFont) {
+		int height = viewport.Height;
+		int fffontSize = (int)ceil(style->fontSize * height);
+		D3DXCreateFont(pDevice, fffontSize, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Franklin Gothic"), &(style->pFont));
+		D3DXCreateSprite(pDevice, &(style->pSprite));
+	}
+	LPD3DXFONT pFont = style->pFont;
+	LPD3DXSPRITE pSprite = style->pSprite;
 	int screenWidth = viewport.Width;
 	int screenHeight = viewport.Height;
 	int fontSize, lineGap;
@@ -23,10 +31,12 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 	RECT measurement = { 0, 0, 0, 0 };
 	int menuWidth = 0;
 
+	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
+
 	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
 	menuWidth = measurement.right - measurement.left;
 	fontSize = measurement.bottom - measurement.top;
-	lineGap = (int)ceil(.2 * fontSize);
+	lineGap = (int)ceil(style->lineSpacing * fontSize);
 	for (int i = 0; i < numMenuItems; i++) {
 		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
 		int width = measurement.right - measurement.left;
@@ -34,33 +44,33 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 			menuWidth = width;
 		}
 	}
-	menuWidth += 2 * padding;
-	int menuHeight = (fontSize + lineGap) * numMenuItems + padding * 2;
+	menuWidth += 2 * style->horizontalPadding * screenWidth;
+	int menuHeight = (fontSize + lineGap) * numMenuItems + style->verticalPadding * 2 * screenHeight;
 	int menuX = 0, menuY = 0;
-	switch (horizontalAnchor) {
+	switch (style->horizontalAlignment) {
 	case HORIZONTAL_ANCHOR_LEFT:
-		menuX = horizontalMargin;
+		menuX = style->horizontalMargin * screenWidth;
 		break;
 	case HORIZONTAL_ANCHOR_CENTER:
 		menuX = (screenWidth - menuWidth) / 2;
 		break;
 	case HORIZONTAL_ANCHOR_RIGHT:
-		menuX = screenWidth - menuWidth - horizontalMargin;
+		menuX = screenWidth - menuWidth - style->horizontalMargin * screenWidth;
 	}
-	switch (verticalAnchor) {
+	switch (style->verticalAlignment) {
 	case VERTICAL_ANCHOR_TOP:
-		menuY = verticalMargin;
+		menuY = style->verticalMargin * screenHeight;
 		break;
 	case VERTICAL_ANCHOR_CENTER:
 		menuY = (screenHeight - menuHeight) / 2;
 		break;
 	case VERTICAL_ANCHOR_BOTTOM:
-		menuY = screenHeight - menuHeight - verticalMargin;
+		menuY = screenHeight - menuHeight - style->verticalMargin * screenHeight;
 	}
 	D3DRECT menuBackgroundBounds = { menuX, menuY, menuX + menuWidth, menuY + menuHeight };
 	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
 
-	RECT drawLocation = { menuX + padding, menuY + padding, screenWidth, screenHeight };
+	RECT drawLocation = { menuX + style->horizontalPadding * screenWidth, menuY + style->verticalPadding * screenHeight, screenWidth, screenHeight };
 	for (int i = 0; i < numMenuItems; i++) {
 		drawingSelectedCheat = i == selectedMenuItemIndex;
 		if (menuItems[i]->canBeActivated()) {
@@ -82,6 +92,7 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPR
 		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &drawLocation, DT_LEFT, chosenColor);
 		drawLocation.top += fontSize + lineGap;
 	}
+	pSprite->End();
 }
 
 SpawnCarMenuItem::SpawnCarMenuItem(int defaultCarID) {

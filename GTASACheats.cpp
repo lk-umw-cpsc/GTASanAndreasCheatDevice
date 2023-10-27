@@ -632,3 +632,35 @@ void spawnExplosionAtTargetPedestrian() {
 	Vector3d position = *pedestrian.position;
 	spawnExplosion(player.baseAddress, 0x13, position.x, position.y, position.z, NULL, NULL, NULL);
 }
+
+void goAway() {
+	const EntityTable table = **ppVehicleTable;
+	int numSlots = table.numSlots;
+	unsigned int arrayBaseAddress = table.arrayBaseAddress;
+	byte* slotInUse = table.slotInUse;
+	unsigned int playerCarBaseAddress = vehicle.baseAddress;
+	Vehicle v;
+	Vector3d playerPosition = *(vehicle.baseAddress ? vehicle.position : player.position);
+	Vector3d playerVelocity = *(vehicle.baseAddress ? vehicle.velocity : player.velocity);
+	float speed = distance(playerVelocity.x, playerVelocity.y, playerVelocity.z);
+	for (int i = 0; i < numSlots; i++) {
+		if (slotInUse[i] >> 7) {
+			continue;
+		}
+		unsigned int baseAddress = arrayBaseAddress + i * VEHICLE_OBJECT_SIZE;
+		if (baseAddress == vehicle.baseAddress) {
+			continue;
+		}
+		hookVehicle(baseAddress, &v);
+		Vector3d position = *v.position;
+		position.x -= playerPosition.x;
+		position.y -= playerPosition.y;
+		float d2d = distance2d(position.x, position.y);
+		if (d2d < 15.f) {
+			position.x /= d2d;
+			position.y /= d2d;
+			v.velocity->x = position.x * speed;
+			v.velocity->y = position.y * speed;
+		}
+	}
+}

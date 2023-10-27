@@ -63,9 +63,6 @@ BOOL WINAPI DllMain(__in  HINSTANCE hinstDLL, __in  DWORD fdwReason, __in  LPVOI
 	return TRUE;
 }
 
-LPD3DXFONT pFont = NULL;
-LPD3DXSPRITE pSprite;
-
 WantedLevel wantedLevel;
 Pedestrian player;
 Vehicle vehicle;
@@ -111,11 +108,34 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 	new ActiveCheatMenuItem(nullptr, nullptr, &discoMode, "Disco Mode", false),
 	new ActiveCheatMenuItem(&enableTrippy, &disableTrippy, nullptr, "Far Out! Mode", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, spawnExplosionAtTargetPedestrian, "D-pad Right Blows Up Pedestrian", false),
+	new ActiveCheatMenuItem(nullptr, nullptr, goAway, "Go Away!", false),
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
-GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), HORIZONTAL_ANCHOR_RIGHT, VERTICAL_ANCHOR_CENTER, 25, 50, 50);
-GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, HORIZONTAL_ANCHOR_LEFT, VERTICAL_ANCHOR_TOP, 25, 50, 50);
+MenuStyle mainMenuStyle = {
+	HORIZONTAL_ANCHOR_LEFT,
+	VERTICAL_ANCHOR_TOP,
+	.02,
+	.02f,
+	.01f,
+	.02f,
+	.025f,
+	.2f,
+};
+
+MenuStyle quickMenuStyle = {
+	HORIZONTAL_ANCHOR_RIGHT,
+	VERTICAL_ANCHOR_CENTER,
+	.02,
+	.02f,
+	.01f,
+	.02f,
+	.025f,
+	.2f
+};
+
+GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), &quickMenuStyle);
+GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, &mainMenuStyle);
 
 DWORD preDetourFunctionCall;
 
@@ -248,12 +268,8 @@ void exit() {
 	}
 	restoreInstructions((void*)GAME_LOOP_FUNCTION_CALL, &preDetourFunctionCall, 4);
 	uninstallD3D9Hook();
-	if (pSprite) {
-		pSprite->Release();
-	}
-	if (pFont) {
-		pFont->Release();
-	}
+	quickMenu.releaseD3DObjects();
+	mainMenu.releaseD3DObjects();
 	restoreInstructions((void*)JUMP_OVER_BHMULTIPLIER_INSTRUCTION_ADDRESS, originalBunnyHopInstructions, sizeof(originalBunnyHopInstructions));
 
 	displayMessage("Cheat device unloaded", 0, 0, 0);
@@ -268,30 +284,14 @@ void unload() {
 	FreeLibraryAndExitThread(hDLL, 0);
 }
 
-D3DVIEWPORT9 pViewport;
-
-#define FONT_SCREEN_HEIGHT_PERCENTAGE	.03f // What % of the screen should the menu text take up?
-#define LINE_SPACING_PERCENTAGE			.25f // What % of the above should be placed between each line of text in the menu?
-
 void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice) {
 	if (*gamePaused) {
 		return;
 	}
-	if (!pFont) {
-		pDevice->GetViewport(&pViewport);
-		int height = pViewport.Height;
-		int fontSize = (int)ceil(FONT_SCREEN_HEIGHT_PERCENTAGE * height);
-		int lineGap = (int)ceil(LINE_SPACING_PERCENTAGE * fontSize);
-		lineGap = 0;
-		D3DXCreateFont(pDevice, fontSize, 0, FW_BOLD, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Franklin Gothic"), &pFont);
-		D3DXCreateSprite(pDevice, &pSprite);
-	}
-	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
 	if (displayMenu) {
-		mainMenu.show(pDevice, pFont, pSprite);
+		mainMenu.show(pDevice);
 	}
 	if (displayQuickMenu) {
-		quickMenu.show(pDevice, pFont, pSprite);
+		quickMenu.show(pDevice);
 	}
-	pSprite->End();
 }

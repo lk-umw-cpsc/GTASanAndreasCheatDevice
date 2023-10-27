@@ -40,3 +40,4 @@ void driveOnWalls();
 void enableTrippy();
 void disableTrippy();
 void spawnExplosionAtTargetPedestrian();
+void goAway();

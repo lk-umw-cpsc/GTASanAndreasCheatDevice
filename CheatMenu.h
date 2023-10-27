@@ -4,7 +4,28 @@
 
 using namespace std;
 
+#define HORIZONTAL_ANCHOR_LEFT		0
+#define HORIZONTAL_ANCHOR_CENTER	1
+#define HORIZONTAL_ANCHOR_RIGHT		2
+
+#define VERTICAL_ANCHOR_TOP			0
+#define VERTICAL_ANCHOR_CENTER		1
+#define VERTICAL_ANCHOR_BOTTOM		2
+
 typedef void(*voidFunction)();
+
+typedef struct MenuStyle {
+	int horizontalAlignment;
+	int verticalAlignment;
+	float horizontalMargin;
+	float verticalMargin;
+	float horizontalPadding;
+	float verticalPadding;
+	float fontSize;
+	float lineSpacing;
+	LPD3DXFONT pFont;
+	LPD3DXSPRITE pSprite;
+};
 
 class CheatMenuItem {
 public:
@@ -33,31 +54,21 @@ public:
 	void onActivate();
 };
 
-#define HORIZONTAL_ANCHOR_LEFT		0
-#define HORIZONTAL_ANCHOR_CENTER	1
-#define HORIZONTAL_ANCHOR_RIGHT		2
-
-#define VERTICAL_ANCHOR_TOP			0
-#define VERTICAL_ANCHOR_CENTER		1
-#define VERTICAL_ANCHOR_BOTTOM		2
-
 class CheatMenu {
 protected:
 	CheatMenuItem** menuItems;
 	CheatMenuItem* selectedMenuItem;
+	MenuStyle* style;
 	int numMenuItems;
 	int selectedMenuItemIndex;
-	int horizontalAnchor, verticalAnchor;
-	int padding;
-	int horizontalMargin;
-	int verticalMargin;
 public:
-	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, int horizontalAnchor, int verticalAnchor, int padding, int horizontalMargin, int verticalMargin);
-	virtual void show(LPDIRECT3DDEVICE9 pDevice, LPD3DXFONT pFont, LPD3DXSPRITE pSprite) = 0;
+	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style);
+	virtual void show(LPDIRECT3DDEVICE9 pDevice) = 0;
 	void menuUp();
 	void menuDown();
 	void selectedMenuItemLeft();
 	void selectedMenuItemRight();
 	void activateSelectedMenuItem();
+	void releaseD3DObjects();
 	CheatMenuItem* getMenuItem(int index);
 };
