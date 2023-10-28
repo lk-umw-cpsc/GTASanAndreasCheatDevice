@@ -146,6 +146,7 @@ MenuHotKeys createHotKeys(const char* keyString) {
 				}
 				hotKey = new MenuHotKey{ hotKeyInputs, size };
 				hotkeys.push_back(hotKey);
+				inputs.clear();
 				break;
 			default:
 				return {};
