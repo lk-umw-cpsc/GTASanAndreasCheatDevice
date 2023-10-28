@@ -3,6 +3,8 @@
 #include <math.h>
 
 #include <string>
+#include <unordered_map>
+#include <chrono>
 
 #include "GTA.h"
 #include "Cheat.h"
@@ -184,6 +186,39 @@ WORD previousButtonState;
 WORD carSpawnID = 506; // Super GT
 DWORD vehicleBaseAddressLastFrame = NULL;
 
+typedef struct Repeat {
+	long long timer;
+	long long nextRepeat;
+};
+unordered_map<WORD, Repeat> buttonRepeatTimers;
+
+DWORD getRepeats(DWORD buttonsHeld) {
+	DWORD repeats = 0;
+	using namespace std::chrono;
+	long long now = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+	for (int button = 1; button; button <<= 1) {
+		if (buttonsHeld & button) {
+			if (buttonRepeatTimers.find(button) != buttonRepeatTimers.end()) {
+				Repeat repeat = buttonRepeatTimers[button];
+				if (repeat.timer < now) {
+					repeats |= button;
+					repeat.timer = now + repeat.nextRepeat;
+					repeat.nextRepeat = max(repeat.nextRepeat - 50, 100);
+					buttonRepeatTimers[button] = repeat;
+				}
+			}
+			else {
+				Repeat repeat = { now + 300, 250 };
+				buttonRepeatTimers[button] = repeat;
+			}
+		}
+		else {
+			buttonRepeatTimers.erase(button);
+		}
+	}
+	return repeats;
+}
+
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
 		exit();
@@ -207,6 +242,7 @@ void hack() {
 	usingGamepad = XInputGetState(0, &gamepadState) == ERROR_SUCCESS;
 	buttonsHeld = gamepadState.Gamepad.wButtons;
 	buttonsPressed = (~previousButtonState) & gamepadState.Gamepad.wButtons;
+	buttonsPressed |= getRepeats(buttonsHeld);
 	buttonsReleased = previousButtonState & (~gamepadState.Gamepad.wButtons);
 	for (int i = 0; i < numMainMenuItems; i++) {
 		ActiveCheatMenuItem* menuItem = (ActiveCheatMenuItem*)mainMenu.getMenuItem(i);
