@@ -113,12 +113,12 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
 CheatMenuControls mainMenuControls = {
-	createHotKeys("hold LB and press up"),
-	createHotKeys("hold LB and press down"),
-	createHotKeys("hold LB and press left"),
-	createHotKeys("hold LB and press right"),
-	createHotKeys("hold LB and press A"),
-	createHotKeys("hold LB and press B or hold RB and press up or hold RB and press down or hold RB and press left or hold RB and press right"),
+	{ "hold LB and press up"},
+	{ "hold LB and press down" },
+	{ "hold LB and press left" },
+	{ "hold LB and press right" },
+	{ "hold LB and press A" },
+	{ "hold LB and press B or hold RB and press up or hold RB and press down or hold RB and press left or hold RB and press right" },
 };
 
 MenuStyle mainMenuStyle = {
@@ -133,12 +133,12 @@ MenuStyle mainMenuStyle = {
 };
 
 CheatMenuControls quickMenuControls = {
-	createHotKeys("hold RB and press up"),
-	createHotKeys("hold RB and press down"),
-	createHotKeys("hold RB and press left"),
-	createHotKeys("hold RB and press right"),
-	createHotKeys("hold RB and press A"),
-	createHotKeys("hold RB and press B or hold LB and press up or hold LB and press down or hold LB and press left or hold LB and press right"),
+	{ "hold RB and press up" },
+	{ "hold RB and press down" },
+	{ "hold RB and press left" },
+	{ "hold RB and press right" },
+	{ "hold RB and press A" },
+	{ "hold RB and press B or hold LB and press up or hold LB and press down or hold LB and press left or hold LB and press right" },
 };
 
 MenuStyle quickMenuStyle = {
@@ -218,7 +218,7 @@ DWORD getRepeats(DWORD buttonsHeld) {
 
 void hack() {
 	if (GetAsyncKeyState(VK_DELETE) & KEY_PRESSED_MASK) {
-		exit();
+		beginExit();
 		return;
 	}
 	DWORD playerBaseAddress = *pPlayerPedBaseAddress;
@@ -261,7 +261,7 @@ void hack() {
 	vehicleBaseAddressLastFrame = vehicleBaseAddress;
 }
 
-void exit() {
+void beginExit() {
 	for (int i = 0; i < numMainMenuItems; i++) {
 		ActiveCheatMenuItem* menuItem = (ActiveCheatMenuItem*)mainMenu.getMenuItem(i);
 		menuItem->setEnabled(false);

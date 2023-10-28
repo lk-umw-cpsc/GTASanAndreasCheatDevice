@@ -28,152 +28,6 @@ const char* tokenStrings[] = {
 };
 #define NUM_TOKENS (sizeof(tokenStrings) / sizeof(char*))
 
-MenuHotKeys createHotKeys(const char* keyString) {
-	const int len = strlen(keyString);
-	if (len > 256) {
-		return {};
-	}
-	char* copy = new char[256];
-	strcpy_s(copy, 256, keyString);
-	// hold LB and press up
-	int count = 0, i = 0;
-	vector<char*> needles;
-	bool lastWasSpace = true;
-	for (char *pCurrentChar = copy, currentChar = *pCurrentChar; currentChar; pCurrentChar++, currentChar = *pCurrentChar) {
-		if (currentChar != ' ') {
-			if (lastWasSpace) {
-				lastWasSpace = false;
-				count++;
-				needles.push_back(pCurrentChar);
-			}
-		}
-		else {
-			*pCurrentChar = 0;
-			lastWasSpace = true;
-		}
-		i++;
-	}
-	const int numSymbols = needles.size();
-	int* symbols = new int[numSymbols];
-	for (i = 0; i < numSymbols; i++) {
-		char* curToken = needles.at(i);
-		bool found = false;
-		for (int t = 0; t < NUM_TOKENS; t++) {
-			if (_strcmpi(curToken, tokenStrings[t]) == 0) {
-				symbols[i] = t;
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			return {};
-		}
-	}
-	BYTE buttonState;
-	WORD button;
-	vector<ButtonInput> inputs;
-	vector<MenuHotKey*> hotkeys;
-	int state = 0;
-	for (i = 0; i < numSymbols; i++) {
-		int currentSymbol = symbols[i];
-		if (state == 0) {
-			switch (currentSymbol) {
-			case TOKEN_HOLD:
-				buttonState = INPUT_TYPE_BUTTON_HELD;
-				break;
-			case TOKEN_PRESS:
-				buttonState = INPUT_TYPE_BUTTON_PRESSED;
-				break;
-			case TOKEN_RELEASE:
-				buttonState = INPUT_TYPE_BUTTON_RELEASED;
-				break;
-			default:
-				return {};
-			}
-			state = 1;
-		}
-		else if (state == 1) {
-			switch (currentSymbol) {
-			case TOKEN_UP:
-				button = XINPUT_GAMEPAD_DPAD_UP;
-				break;
-			case TOKEN_DOWN:
-				button = XINPUT_GAMEPAD_DPAD_DOWN;
-				break;
-			case TOKEN_LEFT:
-				button = XINPUT_GAMEPAD_DPAD_LEFT;
-				break;
-			case TOKEN_RIGHT:
-				button = XINPUT_GAMEPAD_DPAD_RIGHT;
-				break;
-			case TOKEN_A:
-				button = XINPUT_GAMEPAD_A;
-				break;
-			case TOKEN_B:
-				button = XINPUT_GAMEPAD_B;
-				break;
-			case TOKEN_X:
-				button = XINPUT_GAMEPAD_X;
-				break;
-			case TOKEN_Y:
-				button = XINPUT_GAMEPAD_Y;
-				break;
-			case TOKEN_LB:
-				button = XINPUT_GAMEPAD_LEFT_SHOULDER;
-				break;
-			case TOKEN_RB:
-				button = XINPUT_GAMEPAD_RIGHT_SHOULDER;
-				break;
-			default:
-				return {};
-			}
-			ButtonInput input = { buttonState, button };
-			inputs.push_back(input);
-			state = 2;
-		}
-		else if (state == 2) {
-			ButtonInput* hotKeyInputs;
-			MenuHotKey* hotKey;
-			int size;
-			switch (currentSymbol) {
-			case TOKEN_AND:
-				break;
-			case TOKEN_OR:
-				size = inputs.size();
-				hotKeyInputs = new ButtonInput[size];
-				for (int inp = 0; inp < size; inp++) {
-					hotKeyInputs[inp] = inputs.at(inp);
-				}
-				hotKey = new MenuHotKey{ hotKeyInputs, size };
-				hotkeys.push_back(hotKey);
-				inputs.clear();
-				break;
-			default:
-				return {};
-			}
-			state = 0;
-		}
-	}
-	if (state != 2) {
-		return {};
-	}
-	const int size = inputs.size();
-	ButtonInput* hotKeyInputs = new ButtonInput[size];
-	for (int inp = 0; inp < size; inp++) {
-		hotKeyInputs[inp] = inputs.at(inp);
-	}
-	MenuHotKey* hotKey = new MenuHotKey{ hotKeyInputs, size };
-	hotkeys.push_back(hotKey);
-
-	const int numHotkeys = hotkeys.size();
-	MenuHotKey** hotkeysArray = new MenuHotKey* [numHotkeys];
-	MenuHotKeys result = { hotkeysArray, numHotkeys };
-	for (i = 0; i < numHotkeys; i++) {
-		hotkeysArray[i] = hotkeys.at(i);
-	}
-	return result;
-}
-
 string CheatMenuItem::getText() {
 	return "";
 }
@@ -368,4 +222,162 @@ string ActiveCheatMenuItem::getText() {
 		stateText = " OFF";
 	}
 	return name + stateText;
+}
+
+MenuHotKeys::MenuHotKeys(const char* keyString)
+{
+	const int len = strlen(keyString);
+	if (len > 256) {
+		this->hotkeys = NULL;
+		this->numHotkeys = 0;
+		return;
+	}
+	char* copy = new char[256];
+	strcpy_s(copy, 256, keyString);
+	// hold LB and press up
+	int count = 0, i = 0;
+	vector<char*> needles;
+	bool lastWasSpace = true;
+	for (char* pCurrentChar = copy, currentChar = *pCurrentChar; currentChar; pCurrentChar++, currentChar = *pCurrentChar) {
+		if (currentChar != ' ') {
+			if (lastWasSpace) {
+				lastWasSpace = false;
+				count++;
+				needles.push_back(pCurrentChar);
+			}
+		}
+		else {
+			*pCurrentChar = 0;
+			lastWasSpace = true;
+		}
+		i++;
+	}
+	const int numSymbols = needles.size();
+	int* symbols = new int[numSymbols];
+	for (i = 0; i < numSymbols; i++) {
+		char* curToken = needles.at(i);
+		bool found = false;
+		for (int t = 0; t < NUM_TOKENS; t++) {
+			if (_strcmpi(curToken, tokenStrings[t]) == 0) {
+				symbols[i] = t;
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			this->hotkeys = NULL;
+			this->numHotkeys = 0;
+			return;
+		}
+	}
+	BYTE buttonState;
+	WORD button;
+	vector<ButtonInput> inputs;
+	vector<MenuHotKey*> hotkeys;
+	int state = 0;
+	for (i = 0; i < numSymbols; i++) {
+		int currentSymbol = symbols[i];
+		if (state == 0) {
+			switch (currentSymbol) {
+			case TOKEN_HOLD:
+				buttonState = INPUT_TYPE_BUTTON_HELD;
+				break;
+			case TOKEN_PRESS:
+				buttonState = INPUT_TYPE_BUTTON_PRESSED;
+				break;
+			case TOKEN_RELEASE:
+				buttonState = INPUT_TYPE_BUTTON_RELEASED;
+				break;
+			default:
+				this->hotkeys = NULL;
+				this->numHotkeys = 0;
+				return;
+			}
+			state = 1;
+		}
+		else if (state == 1) {
+			switch (currentSymbol) {
+			case TOKEN_UP:
+				button = XINPUT_GAMEPAD_DPAD_UP;
+				break;
+			case TOKEN_DOWN:
+				button = XINPUT_GAMEPAD_DPAD_DOWN;
+				break;
+			case TOKEN_LEFT:
+				button = XINPUT_GAMEPAD_DPAD_LEFT;
+				break;
+			case TOKEN_RIGHT:
+				button = XINPUT_GAMEPAD_DPAD_RIGHT;
+				break;
+			case TOKEN_A:
+				button = XINPUT_GAMEPAD_A;
+				break;
+			case TOKEN_B:
+				button = XINPUT_GAMEPAD_B;
+				break;
+			case TOKEN_X:
+				button = XINPUT_GAMEPAD_X;
+				break;
+			case TOKEN_Y:
+				button = XINPUT_GAMEPAD_Y;
+				break;
+			case TOKEN_LB:
+				button = XINPUT_GAMEPAD_LEFT_SHOULDER;
+				break;
+			case TOKEN_RB:
+				button = XINPUT_GAMEPAD_RIGHT_SHOULDER;
+				break;
+			default:
+				this->hotkeys = NULL;
+				this->numHotkeys = 0;
+				return;
+			}
+			ButtonInput input = { buttonState, button };
+			inputs.push_back(input);
+			state = 2;
+		}
+		else if (state == 2) {
+			ButtonInput* hotKeyInputs;
+			MenuHotKey* hotKey;
+			int size;
+			switch (currentSymbol) {
+			case TOKEN_AND:
+				break;
+			case TOKEN_OR:
+				size = inputs.size();
+				hotKeyInputs = new ButtonInput[size];
+				for (int inp = 0; inp < size; inp++) {
+					hotKeyInputs[inp] = inputs.at(inp);
+				}
+				hotKey = new MenuHotKey{ hotKeyInputs, size };
+				hotkeys.push_back(hotKey);
+				inputs.clear();
+				break;
+			default:
+				this->hotkeys = NULL;
+				this->numHotkeys = 0;
+				return;
+			}
+			state = 0;
+		}
+	}
+	if (state != 2) {
+		this->hotkeys = NULL;
+		this->numHotkeys = 0;
+	}
+	const int size = inputs.size();
+	ButtonInput* hotKeyInputs = new ButtonInput[size];
+	for (int inp = 0; inp < size; inp++) {
+		hotKeyInputs[inp] = inputs.at(inp);
+	}
+	MenuHotKey* hotKey = new MenuHotKey{ hotKeyInputs, size };
+	hotkeys.push_back(hotKey);
+
+	const int numHotkeys = hotkeys.size();
+	MenuHotKey** hotkeysArray = new MenuHotKey * [numHotkeys];
+	this->hotkeys = hotkeysArray;
+	this->numHotkeys = numHotkeys;
+	for (i = 0; i < numHotkeys; i++) {
+		hotkeysArray[i] = hotkeys.at(i);
+	}
 }

@@ -49,14 +49,13 @@ typedef struct MenuHotKey {
 };
 
 typedef struct MenuHotKeys {
+	MenuHotKeys(const char* s);
 	MenuHotKey** hotkeys;
 	int numHotkeys;
 };
 
 bool inputActive(ButtonInput input, DWORD buttonStates[3]);
 bool hotKeyActivated(const MenuHotKeys hk, DWORD buttonStates[3]);
-
-MenuHotKeys createHotKeys(const char* s);
 
 typedef struct CheatMenuControls {
 	const MenuHotKeys menuUp;

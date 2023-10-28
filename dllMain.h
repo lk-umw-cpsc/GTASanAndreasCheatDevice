@@ -21,7 +21,7 @@ void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice);
 void init();
 void detour();
 void hack();
-void exit();
+void beginExit();
 void unload();
 
 extern WantedLevel wantedLevel;
