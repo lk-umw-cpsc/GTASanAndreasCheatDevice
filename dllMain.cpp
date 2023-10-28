@@ -27,8 +27,6 @@ $(DXSDK_DIR)Lib\x86
 /*
 	Menu improvements:
 	* Allow menu to scroll if too big (dynamically)
-	* Input handler class
-	* Move D3D hook etc to own file
 	* Info on screen (coords, etc) w/ LB+RB
 	
 	Ideas:
@@ -37,7 +35,7 @@ $(DXSDK_DIR)Lib\x86
 	Player jump size (Moon jump) +0x8c, lower = higher jump
 	Vehicle mass
 	Car speed
-
+	Ignore water collision
 	Disable collision
 	Fire rockets/drop grenades from car
 
@@ -183,7 +181,6 @@ WORD buttonsHeld;
 WORD buttonsPressed;
 WORD buttonsReleased;
 WORD previousButtonState;
-WORD carSpawnID = 506; // Super GT
 DWORD vehicleBaseAddressLastFrame = NULL;
 
 typedef struct Repeat {
@@ -229,7 +226,7 @@ void hack() {
 	if (playerBaseAddress != player.baseAddress && playerBaseAddress) {
 		hookPedestrian(playerBaseAddress, &player);
 	}
-	if (vehicleBaseAddress) {
+	if (vehicleBaseAddress && vehicle.baseAddress != vehicleBaseAddress) {
 		hookVehicle(vehicleBaseAddress, &vehicle);
 	} else {
 		vehicle.baseAddress = NULL;
@@ -244,6 +241,10 @@ void hack() {
 	buttonsPressed = (~previousButtonState) & gamepadState.Gamepad.wButtons;
 	buttonsPressed |= getRepeats(buttonsHeld);
 	buttonsReleased = previousButtonState & (~gamepadState.Gamepad.wButtons);
+
+	mainMenu.handleInput(buttonsHeld, buttonsPressed, buttonsReleased);
+	quickMenu.handleInput(buttonsHeld, buttonsPressed, buttonsReleased);
+	
 	for (int i = 0; i < numMainMenuItems; i++) {
 		ActiveCheatMenuItem* menuItem = (ActiveCheatMenuItem*)mainMenu.getMenuItem(i);
 		if (menuItem->isEnabled()) {
@@ -253,9 +254,6 @@ void hack() {
 			}
 		}
 	}
-
-	mainMenu.handleInput(buttonsHeld, buttonsPressed, buttonsReleased);
-	quickMenu.handleInput(buttonsHeld, buttonsPressed, buttonsReleased);
 
 	previousButtonState = gamepadState.Gamepad.wButtons;
 	vehicleBaseAddressLastFrame = vehicleBaseAddress;
