@@ -28,10 +28,10 @@ const char* tokenStrings[] = {
 };
 #define NUM_TOKENS (sizeof(tokenStrings) / sizeof(char*))
 
-MenuHotKey** createHotKeys(char* keyString) {
+MenuHotKeys createHotKeys(const char* keyString) {
 	const int len = strlen(keyString);
 	if (len > 256) {
-		return NULL;
+		return {};
 	}
 	char* copy = new char[256];
 	strcpy_s(copy, 256, keyString);
@@ -39,7 +39,7 @@ MenuHotKey** createHotKeys(char* keyString) {
 	int count = 0, i = 0;
 	vector<char*> needles;
 	bool lastWasSpace = true;
-	for (char *pCurrentChar = copy, currentChar = *copy; currentChar; pCurrentChar++) {
+	for (char *pCurrentChar = copy, currentChar = *pCurrentChar; currentChar; pCurrentChar++, currentChar = *pCurrentChar) {
 		if (currentChar != ' ') {
 			if (lastWasSpace) {
 				lastWasSpace = false;
@@ -66,7 +66,7 @@ MenuHotKey** createHotKeys(char* keyString) {
 			}
 		}
 		if (!found) {
-			return NULL;
+			return {};
 		}
 	}
 	BYTE buttonState;
@@ -88,7 +88,7 @@ MenuHotKey** createHotKeys(char* keyString) {
 				buttonState = INPUT_TYPE_BUTTON_RELEASED;
 				break;
 			default:
-				return NULL;
+				return {};
 			}
 			state = 1;
 		}
@@ -125,7 +125,7 @@ MenuHotKey** createHotKeys(char* keyString) {
 				button = XINPUT_GAMEPAD_RIGHT_SHOULDER;
 				break;
 			default:
-				return NULL;
+				return {};
 			}
 			ButtonInput input = { buttonState, button };
 			inputs.push_back(input);
@@ -148,13 +148,13 @@ MenuHotKey** createHotKeys(char* keyString) {
 				hotkeys.push_back(hotKey);
 				break;
 			default:
-				return NULL;
+				return {};
 			}
 			state = 0;
 		}
 	}
 	if (state != 2) {
-		return NULL;
+		return {};
 	}
 	const int size = inputs.size();
 	ButtonInput* hotKeyInputs = new ButtonInput[size];
@@ -165,9 +165,10 @@ MenuHotKey** createHotKeys(char* keyString) {
 	hotkeys.push_back(hotKey);
 
 	const int numHotkeys = hotkeys.size();
-	MenuHotKey** result = new MenuHotKey* [numHotkeys];
+	MenuHotKey** hotkeysArray = new MenuHotKey* [numHotkeys];
+	MenuHotKeys result = { hotkeysArray, numHotkeys };
 	for (i = 0; i < numHotkeys; i++) {
-		result[i] = hotkeys.at(i);
+		hotkeysArray[i] = hotkeys.at(i);
 	}
 	return result;
 }
@@ -196,18 +197,26 @@ bool inputActive(ButtonInput input, DWORD buttonStates[3]) {
 	return buttonStates[input.inputType] & input.button;
 }
 
-bool hotKeyActivated(const MenuHotKey* hk, DWORD buttonStates[3]) {
-	const int numInputs = hk->numInputs;
-	const ButtonInput* inputs = hk->inputs;
-	for (int i = 0; i < hk->numInputs; i++) {
-		if (!inputActive(inputs[i], buttonStates)) {
-			return false;
+bool hotKeyActivated(const MenuHotKeys hotkeys, DWORD buttonStates[3]) {
+	const int numHotkeys = hotkeys.numHotkeys;
+	for (int i = 0; i < numHotkeys; i++) {
+		const int numInputs = hotkeys.hotkeys[i]->numInputs;
+		const ButtonInput* inputs = hotkeys.hotkeys[i]->inputs;
+		bool good = true;
+		for (int input = 0; input < numInputs; input++) {
+			if (!inputActive(inputs[input], buttonStates)) {
+				good = false;
+				break;
+			}
+		}
+		if (good) {
+			return true;
 		}
 	}
-	return true;
+	return false;
 }
 
-CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuHotKeys* hotKeys) {
+CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuControls* hotKeys) {
 	this->menuItems = menuItems;
 	this->numMenuItems = numMenuItems;
 	selectedMenuItem = menuItems[0];

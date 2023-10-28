@@ -5,7 +5,7 @@
 
 using namespace std;
 
-GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuHotKeys* hotKeys) : CheatMenu(menuItems, numMenuItems, style, hotKeys) {
+GTASACheatMenu::GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuControls* hotKeys) : CheatMenu(menuItems, numMenuItems, style, hotKeys) {
 
 }
 

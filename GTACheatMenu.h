@@ -16,7 +16,7 @@
 
 class GTASACheatMenu : public CheatMenu {
 public:
-	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuHotKeys* hotKeys);
+	GTASACheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuControls* hotKeys);
 	void show(LPDIRECT3DDEVICE9 pDevice);
 };
 

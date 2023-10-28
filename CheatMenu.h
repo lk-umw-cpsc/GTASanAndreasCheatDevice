@@ -48,18 +48,23 @@ typedef struct MenuHotKey {
 	const int numInputs;
 };
 
+typedef struct MenuHotKeys {
+	MenuHotKey** hotkeys;
+	int numHotkeys;
+};
+
 bool inputActive(ButtonInput input, DWORD buttonStates[3]);
-bool hotKeyActivated(const MenuHotKey* hk, DWORD buttonStates[3]);
+bool hotKeyActivated(const MenuHotKeys hk, DWORD buttonStates[3]);
 
-MenuHotKey** createHotKeys(string s);
+MenuHotKeys createHotKeys(const char* s);
 
-typedef struct CheatMenuHotKeys {
-	const MenuHotKey* menuUp;
-	const MenuHotKey* menuDown;
-	const MenuHotKey* menuLeft;
-	const MenuHotKey* menuRight;
-	const MenuHotKey* menuActivate;
-	const MenuHotKey* menuClose;
+typedef struct CheatMenuControls {
+	const MenuHotKeys menuUp;
+	const MenuHotKeys menuDown;
+	const MenuHotKeys menuLeft;
+	const MenuHotKeys menuRight;
+	const MenuHotKeys menuActivate;
+	const MenuHotKeys menuClose;
 };
 
 class CheatMenuItem {
@@ -94,12 +99,12 @@ protected:
 	CheatMenuItem** menuItems;
 	CheatMenuItem* selectedMenuItem;
 	MenuStyle* style;
-	CheatMenuHotKeys* hotKeys;
+	CheatMenuControls* hotKeys;
 	int numMenuItems;
 	int selectedMenuItemIndex;
 	bool showing;
 public:
-	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuHotKeys* hotKeys);
+	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuControls* hotKeys);
 	virtual void show(LPDIRECT3DDEVICE9 pDevice) = 0;
 	void menuUp();
 	void menuDown();

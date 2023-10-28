@@ -112,61 +112,13 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 
-MenuHotKey mainMenuUpHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_UP }
-	},
-	2
-};
-
-MenuHotKey mainMenuDownHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_DOWN }
-	},
-	2
-};
-
-MenuHotKey mainMenuLeftHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_LEFT }
-	},
-	2
-};
-
-MenuHotKey mainMenuRightHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_RIGHT }
-	},
-	2
-};
-
-MenuHotKey mainMenuActivateHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_A }
-	},
-	2
-};
-
-MenuHotKey mainMenuCloseHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_LEFT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_B }
-	},
-	2
-};
-
-CheatMenuHotKeys mainMenuHotKeys = { 
-	&mainMenuUpHK,
-	&mainMenuDownHK,
-	&mainMenuLeftHK,
-	&mainMenuRightHK,
-	&mainMenuActivateHK,
-	&mainMenuCloseHK,
+CheatMenuControls mainMenuControls = {
+	createHotKeys("hold LB and press up"),
+	createHotKeys("hold LB and press down"),
+	createHotKeys("hold LB and press left"),
+	createHotKeys("hold LB and press right"),
+	createHotKeys("hold LB and press A"),
+	createHotKeys("hold LB and press B"),
 };
 
 MenuStyle mainMenuStyle = {
@@ -180,61 +132,13 @@ MenuStyle mainMenuStyle = {
 	.2f,
 };
 
-MenuHotKey quickMenuUpHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_UP }
-	},
-	2
-};
-
-MenuHotKey quickMenuDownHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_DOWN }
-	},
-	2
-};
-
-MenuHotKey quickMenuLeftHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_LEFT }
-	},
-	2
-};
-
-MenuHotKey quickMenuRightHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_DPAD_RIGHT }
-	},
-	2
-};
-
-MenuHotKey quickMenuActivateHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_A }
-	},
-	2
-};
-
-MenuHotKey quickMenuCloseHK = {
-	new ButtonInput[2] {
-		{ INPUT_TYPE_BUTTON_HELD, XINPUT_GAMEPAD_RIGHT_SHOULDER },
-		{ INPUT_TYPE_BUTTON_PRESSED, XINPUT_GAMEPAD_B }
-	},
-	2
-};
-
-CheatMenuHotKeys quickMenuHotKeys = {
-	&quickMenuUpHK,
-	&quickMenuDownHK,
-	&quickMenuLeftHK,
-	&quickMenuRightHK,
-	&quickMenuActivateHK,
-	&quickMenuCloseHK,
+CheatMenuControls quickMenuControls = {
+	createHotKeys("hold RB and press up"),
+	createHotKeys("hold RB and press down"),
+	createHotKeys("hold RB and press left"),
+	createHotKeys("hold RB and press right"),
+	createHotKeys("hold RB and press A"),
+	createHotKeys("hold RB and press B"),
 };
 
 MenuStyle quickMenuStyle = {
@@ -248,8 +152,8 @@ MenuStyle quickMenuStyle = {
 	.2f
 };
 
-GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), &quickMenuStyle, &quickMenuHotKeys);
-GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, &mainMenuStyle, &mainMenuHotKeys);
+GTASACheatMenu quickMenu = GTASACheatMenu(menuItems, sizeof(menuItems) / sizeof(CheatMenuItem*), &quickMenuStyle, &quickMenuControls);
+GTASACheatMenu mainMenu = GTASACheatMenu((CheatMenuItem**)mainMenuItems, numMainMenuItems, &mainMenuStyle, &mainMenuControls);
 
 DWORD preDetourFunctionCall;
 
