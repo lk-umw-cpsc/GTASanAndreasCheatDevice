@@ -226,8 +226,10 @@ void hack() {
 	if (playerBaseAddress != player.baseAddress && playerBaseAddress) {
 		hookPedestrian(playerBaseAddress, &player);
 	}
-	if (vehicleBaseAddress && vehicle.baseAddress != vehicleBaseAddress) {
-		hookVehicle(vehicleBaseAddress, &vehicle);
+	if (vehicleBaseAddress) {
+		if (vehicle.baseAddress != vehicleBaseAddress) {
+			hookVehicle(vehicleBaseAddress, &vehicle);
+		}
 	} else {
 		vehicle.baseAddress = NULL;
 	}
@@ -279,10 +281,6 @@ void exit() {
 }
 
 void unload() {
-	HMODULE h;
-	char name[MAX_PATH];
-	GetModuleFileName(hDLL, name, MAX_PATH);
-	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, name, &h);
 	FreeLibraryAndExitThread(hDLL, 0);
 }
 
