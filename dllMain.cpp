@@ -118,7 +118,7 @@ CheatMenuControls mainMenuControls = {
 	createHotKeys("hold LB and press left"),
 	createHotKeys("hold LB and press right"),
 	createHotKeys("hold LB and press A"),
-	createHotKeys("hold LB and press B"),
+	createHotKeys("hold LB and press B or hold RB and press up or hold RB and press down or hold RB and press left or hold RB and press right"),
 };
 
 MenuStyle mainMenuStyle = {
@@ -138,7 +138,7 @@ CheatMenuControls quickMenuControls = {
 	createHotKeys("hold RB and press left"),
 	createHotKeys("hold RB and press right"),
 	createHotKeys("hold RB and press A"),
-	createHotKeys("hold RB and press B"),
+	createHotKeys("hold RB and press B or hold LB and press up or hold LB and press down or hold LB and press left or hold LB and press right"),
 };
 
 MenuStyle quickMenuStyle = {
