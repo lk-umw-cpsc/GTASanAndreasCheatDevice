@@ -19,12 +19,14 @@ using namespace std;
 #define TOKEN_Y 10
 #define TOKEN_LB 11
 #define TOKEN_RB 12
+#define TOKEN_L3 15
+#define TOKEN_R3 16
 
 #define TOKEN_AND 13
 #define TOKEN_OR 14
 
 const char* tokenStrings[] = {
-	"hold", "press", "release", "up", "down", "left", "right", "a", "b", "x", "y", "lb", "rb", "and", "or"
+	"hold", "press", "release", "up", "down", "left", "right", "a", "b", "x", "y", "lb", "rb", "and", "or", "l3", "r3"
 };
 #define NUM_TOKENS (sizeof(tokenStrings) / sizeof(char*))
 
@@ -326,6 +328,12 @@ MenuHotKeys::MenuHotKeys(const char* keyString)
 				break;
 			case TOKEN_RB:
 				button = XINPUT_GAMEPAD_RIGHT_SHOULDER;
+				break;
+			case TOKEN_L3:
+				button = XINPUT_GAMEPAD_LEFT_THUMB;
+				break;
+			case TOKEN_R3:
+				button = XINPUT_GAMEPAD_RIGHT_THUMB;
 				break;
 			default:
 				this->hotkeys = NULL;

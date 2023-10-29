@@ -38,7 +38,7 @@ $(DXSDK_DIR)Lib\x86
 	Ignore water collision
 	Disable collision
 	Fire rockets/drop grenades from car
-
+	gta_sa.exe+1429ED - apply forces(?) function
 */
 
 const void (*fireRocket)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD) = (const void(*)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD))0x737C80;
