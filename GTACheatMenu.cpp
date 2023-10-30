@@ -2,6 +2,7 @@
 #include "GTACheatMenu.h"
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -431,4 +432,116 @@ void BunnyHopMenuItem::onRightInput() {
 
 void BunnyHopMenuItem::onActivate() {
 	*bunnyHopMultiplier = *bunnyHopMultiplier;
+}
+
+struct EntityTableEntry {
+	DWORD baseAddress;
+	BYTE flags;
+};
+
+void getNearestNonPlayerCarInfo(EntityTableEntry* out) {
+	const EntityTable table = **ppVehicleTable;
+	int numSlots = table.numSlots;
+	unsigned int arrayBaseAddress = table.arrayBaseAddress;
+	byte* slotInUse = table.slotInUse;
+	unsigned int playerCarBaseAddress = vehicle.baseAddress;
+	Vehicle v;
+	Vector3d playerPosition = *(playerCarBaseAddress ? vehicle.position : player.position);
+	float shortestDistance = 1000000.0f;
+	DWORD closestBA = NULL;
+	BYTE closestFlags = NULL;
+	for (int i = 0; i < numSlots; i++) {
+		if (slotInUse[i] >> 7) {
+			continue;
+		}
+		DWORD baseAddress = arrayBaseAddress + i * VEHICLE_OBJECT_SIZE;
+		if (baseAddress == playerCarBaseAddress) {
+			continue;
+		}
+		hookVehicle(baseAddress, &v);
+		Vector3d position = *v.position;
+		float dx = position.x - playerPosition.x;
+		float dy = position.y - playerPosition.y;
+		float dz = position.z - playerPosition.z;
+		float thisDistance = distance(dx, dy, dz);
+		if (thisDistance < shortestDistance) {
+			shortestDistance = thisDistance;
+			closestBA = baseAddress;
+			closestFlags = slotInUse[i];
+		}
+	}
+	out->baseAddress = closestBA;
+	out->flags = closestFlags;
+}
+
+string byteToString(BYTE d) {
+	char buff[3] = { 0 };
+	sprintf_s(buff, "%02X", d);
+	return string(buff);
+}
+
+string wordToString(WORD d) {
+	stringstream stream;
+	stream << uppercase << setfill('0') << setw(sizeof(WORD) * 2) << hex << d;
+	return string(stream.str());
+}
+
+string dwordToString(DWORD d) {
+	stringstream stream;
+	stream << uppercase << setfill('0') << setw(sizeof(DWORD) * 2) << hex << d;
+	return string(stream.str());
+}
+
+LPD3DXFONT dbgpFont = NULL;
+LPD3DXSPRITE dbgpSprite = NULL;
+void initDebugMenu(LPDIRECT3DDEVICE9 pDevice, D3DVIEWPORT9* viewport) {
+	int height = viewport->Height;
+	int fontSize = (int)ceil(.03 * height);
+	D3DXCreateFont(pDevice, fontSize, 0, FW_REGULAR, 0, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, TEXT("Consolas"), &dbgpFont);
+	D3DXCreateSprite(pDevice, &dbgpSprite);
+}
+
+void drawDebugMenu(LPDIRECT3DDEVICE9 pDevice) {
+	EntityTableEntry nearest;
+	getNearestNonPlayerCarInfo(&nearest);
+	string playerObjects = "CJ: " + dwordToString(player.baseAddress);
+	if (vehicle.baseAddress) {
+		playerObjects += " Vehicle: " + dwordToString(vehicle.baseAddress);
+	}
+	drawDebugLine(pDevice, playerObjects, 0);
+	drawDebugLine(pDevice, "Nearest car: " + dwordToString(nearest.baseAddress) + " (" + byteToString(nearest.flags) + ")", 1);
+}
+
+#define PADDING 4
+void drawDebugLine(LPDIRECT3DDEVICE9 pDevice, string s, int line) {
+	D3DVIEWPORT9 viewport;
+	pDevice->GetViewport(&viewport);
+	if (!dbgpFont) {
+		initDebugMenu(pDevice, &viewport);
+	}
+	int screenWidth = viewport.Width;
+	int screenHeight = viewport.Height;
+	RECT measurement = { 0, 0, 0, 0 };
+	dbgpSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
+	dbgpFont->DrawText(dbgpSprite, s.c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+	int width = measurement.right - measurement.left;
+	int height = measurement.bottom - measurement.top;
+	int drawX = (screenWidth - width) / 2;
+	int drawY = screenHeight - (line + 1) * height;
+
+	D3DRECT clearRect = { drawX - PADDING, drawY - PADDING, drawX + width + 2 * PADDING, drawY + height + 2 * PADDING };
+	pDevice->Clear(1, &clearRect, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
+
+	RECT drawLocation = { drawX, drawY, screenWidth, screenHeight };
+	dbgpFont->DrawText(dbgpSprite, s.c_str(), -1, &drawLocation, DT_LEFT, MENU_TEXT_COLOR);
+	dbgpSprite->End();
+}
+
+void releaseDebugMenuD3DObjects() {
+	if (dbgpFont) {
+		dbgpFont->Release();
+	}
+	if (dbgpSprite) {
+		dbgpSprite->Release();
+	}
 }

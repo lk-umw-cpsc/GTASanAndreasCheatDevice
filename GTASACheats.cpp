@@ -678,6 +678,7 @@ void goAway() {
 		Vector3d position = *v.position;
 		position.x -= playerPosition.x;
 		position.y -= playerPosition.y;
+		// ba, 198, 42b, 747, 778. 
 		float d2d = distance2d(position.x, position.y);
 		if (d2d < 15.f) {
 			position.x /= d2d;

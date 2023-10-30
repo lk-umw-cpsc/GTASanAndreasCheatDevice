@@ -26,7 +26,7 @@ $(DXSDK_DIR)Lib\x86
 
 /*
 	Menu improvements:
-	* Allow menu to scroll if too big (dynamically)
+	* ??? more debug stuff?
 	
 	Ideas:
 	Don't lose weapons on death
@@ -38,6 +38,7 @@ $(DXSDK_DIR)Lib\x86
 	Disable collision
 	Fire rockets/drop grenades from car
 	gta_sa.exe+1429ED - apply forces(?) function
+	Toggle vehicle lights
 */
 
 const void (*fireRocket)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD) = (const void(*)(DWORD, DWORD, float, float, float, DWORD, DWORD, DWORD))0x737C80;
@@ -139,6 +140,9 @@ CheatMenuControls quickMenuControls = {
 	{ "hold RB and press A" },
 	{ "hold RB and press B or hold LB and press up or hold LB and press down or hold LB and press left or hold LB and press right" },
 };
+
+MenuHotKeys toggleDebugMenuHotKeys = { "hold RB and press LB or hold LB and press RB" };
+bool showDebugMenu = true;
 
 MenuStyle quickMenuStyle = {
 	HORIZONTAL_ANCHOR_RIGHT,
@@ -255,6 +259,10 @@ void hack() {
 			}
 		}
 	}
+	DWORD buttonStates[3] = { buttonsHeld, buttonsPressed, buttonsReleased };
+	if (hotKeyActivated(toggleDebugMenuHotKeys, buttonStates)) {
+		showDebugMenu = !showDebugMenu;
+	}
 
 	previousButtonState = gamepadState.Gamepad.wButtons;
 	vehicleBaseAddressLastFrame = vehicleBaseAddress;
@@ -289,4 +297,7 @@ void APIENTRY drawScene(LPDIRECT3DDEVICE9 pDevice) {
 	}
 	mainMenu.show(pDevice);
 	quickMenu.show(pDevice);
+	if (showDebugMenu) {
+		drawDebugMenu(pDevice);
+	}
 }
