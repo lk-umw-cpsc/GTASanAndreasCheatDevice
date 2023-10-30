@@ -102,6 +102,7 @@ protected:
 	int numMenuItems;
 	int selectedMenuItemIndex;
 	bool showing;
+	int scrollIndex;
 public:
 	CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* style, CheatMenuControls* hotKeys);
 	virtual void show(LPDIRECT3DDEVICE9 pDevice) = 0;

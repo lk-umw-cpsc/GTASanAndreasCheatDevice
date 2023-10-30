@@ -27,7 +27,6 @@ $(DXSDK_DIR)Lib\x86
 /*
 	Menu improvements:
 	* Allow menu to scroll if too big (dynamically)
-	* Info on screen (coords, etc) w/ LB+RB
 	
 	Ideas:
 	Don't lose weapons on death

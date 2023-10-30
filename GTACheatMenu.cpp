@@ -33,11 +33,11 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice) {
 
 	pSprite->Begin(D3DXSPRITE_SORT_TEXTURE | D3DXSPRITE_ALPHABLEND);
 
-	pFont->DrawText(pSprite, menuItems[0]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
+	pFont->DrawText(pSprite, menuItems[scrollIndex]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
 	menuWidth = measurement.right - measurement.left;
 	fontSize = measurement.bottom - measurement.top;
 	lineGap = (int)ceil(style->lineSpacing * fontSize);
-	for (int i = 0; i < numMenuItems; i++) {
+	for (int i = scrollIndex + 1, count = 0; i < numMenuItems && count < 10; i++, count++) {
 		pFont->DrawText(pSprite, menuItems[i]->getText().c_str(), -1, &measurement, DT_CALCRECT, D3DCOLOR_XRGB(0, 0, 0));
 		int width = measurement.right - measurement.left;
 		if (menuWidth < width) {
@@ -45,7 +45,7 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice) {
 		}
 	}
 	menuWidth += 2 * style->horizontalPadding * screenWidth;
-	int menuHeight = (fontSize + lineGap) * numMenuItems + style->verticalPadding * 2 * screenHeight;
+	int menuHeight = (fontSize + lineGap) * min(numMenuItems, 10) + style->verticalPadding * 2 * screenHeight;
 	int menuX = 0, menuY = 0;
 	switch (style->horizontalAlignment) {
 	case HORIZONTAL_ANCHOR_LEFT:
@@ -71,7 +71,7 @@ void GTASACheatMenu::show(LPDIRECT3DDEVICE9 pDevice) {
 	pDevice->Clear(1, &menuBackgroundBounds, D3DCLEAR_TARGET, MENU_BACKGROUND_COLOR, 0, 0);
 
 	RECT drawLocation = { menuX + style->horizontalPadding * screenWidth, menuY + style->verticalPadding * screenHeight, screenWidth, screenHeight };
-	for (int i = 0; i < numMenuItems; i++) {
+	for (int i = scrollIndex, count = 0; i < numMenuItems && count < 10; i++, count++) {
 		drawingSelectedCheat = i == selectedMenuItemIndex;
 		if (menuItems[i]->canBeActivated()) {
 			if (drawingSelectedCheat) {

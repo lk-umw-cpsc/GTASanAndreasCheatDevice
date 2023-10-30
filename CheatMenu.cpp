@@ -81,6 +81,7 @@ CheatMenu::CheatMenu(CheatMenuItem** menuItems, int numMenuItems, MenuStyle* sty
 	this->style = style;
 	this->hotKeys = hotKeys;
 	showing = false;
+	scrollIndex = 0;
 }
 
 void CheatMenu::releaseD3DObjects() {
@@ -100,9 +101,13 @@ void CheatMenu::menuUp() {
 		selectedMenuItemIndex--;
 		if (selectedMenuItemIndex == -1) {
 			selectedMenuItemIndex = numMenuItems - 1;
+			scrollIndex = numMenuItems - 10;
 		}
 		selectedMenuItem = menuItems[selectedMenuItemIndex];
 	} while (!selectedMenuItem->canBeActivated() && selectedMenuItemIndex != oldIndex);
+	if (scrollIndex > selectedMenuItemIndex) {
+		scrollIndex = selectedMenuItemIndex;
+	}
 }
 
 void CheatMenu::menuDown() {
@@ -111,9 +116,13 @@ void CheatMenu::menuDown() {
 		selectedMenuItemIndex++;
 		if (selectedMenuItemIndex == numMenuItems) {
 			selectedMenuItemIndex = 0;
+			scrollIndex = 0;
 		}
 		selectedMenuItem = menuItems[selectedMenuItemIndex];
 	} while (!selectedMenuItem->canBeActivated() && selectedMenuItemIndex != oldIndex);
+	if (selectedMenuItemIndex - scrollIndex > 9) {
+		scrollIndex = selectedMenuItemIndex - 9;
+	}
 }
 
 void CheatMenu::selectedMenuItemLeft() {

@@ -581,12 +581,35 @@ void disableNoPlaneDamage() {
 }
 
 void discoMode() {
-	if (!vehicle.baseAddress) {
-		return;
+	const EntityTable table = **ppVehicleTable;
+	int numSlots = table.numSlots;
+	unsigned int arrayBaseAddress = table.arrayBaseAddress;
+	byte* slotInUse = table.slotInUse;
+	unsigned int playerCarBaseAddress = vehicle.baseAddress;
+	Vehicle v;
+	Vector3d playerPosition = *(vehicle.baseAddress ? vehicle.position : player.position);
+	Vector3d playerVelocity = *(vehicle.baseAddress ? vehicle.velocity : player.velocity);
+	float speed = distance(playerVelocity.x, playerVelocity.y, playerVelocity.z);
+	for (int i = 0; i < numSlots; i++) {
+		if (slotInUse[i] >> 7) {
+			continue;
+		}
+		unsigned int baseAddress = arrayBaseAddress + i * VEHICLE_OBJECT_SIZE;
+		byte randomColor = rand() % 186 + 1;
+		*(BYTE*)(baseAddress + VEHICLE_COLOR1_OFFSET) = randomColor;
+		*(BYTE*)(baseAddress + VEHICLE_COLOR2_OFFSET) = randomColor;
+		/*hookVehicle(baseAddress, &v);
+		Vector3d position = *v.position;
+		position.x -= playerPosition.x;
+		position.y -= playerPosition.y;
+		float d2d = distance2d(position.x, position.y);
+		if (d2d < 15.f) {
+			position.x /= d2d;
+			position.y /= d2d;
+			v.velocity->x = position.x * speed;
+			v.velocity->y = position.y * speed;
+		}*/
 	}
-	byte randomColor = rand() % 186 + 1;
-	*vehicle.color1 = randomColor;
-	*vehicle.color2 = randomColor;
 }
 
 void infiniteNos() {
