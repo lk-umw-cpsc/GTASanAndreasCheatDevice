@@ -20,7 +20,6 @@ void hookPedestrian(DWORD baseAddress, Pedestrian* pedOut) {
 	pedOut->pTouch = (DWORD*)(baseAddress + TOUCH_POINTER_OFFSET);
 	pedOut->health = (float*)(baseAddress + PEDESTRIAN_HEALTH_OFFSET);
 	pedOut->armor = (float*)(baseAddress + PEDESTRIAN_ARMOR_OFFSET);
-	pedOut->oxygen = (float*)(baseAddress + PEDESTRIAN_OXYGEN_OFFSET);
 	pedOut->pTargetBaseAddress = (DWORD*)(baseAddress + PEDESTRIAN_TARGET_POINTER_OFFSET);
 }
 
@@ -86,3 +85,5 @@ voidObjectFunction freezePedestrian = (voidObjectFunction)0x005DED10;
 voidObjectFunction killPedestrian = (voidObjectFunction)0x005E5320; //0x02 for kill
 
 float* bunnyHopMultiplier = (float*)BUNNY_HOP_MULTIPLIER_ADDRESS;
+
+float* playerOxygen = (float*)PLAYER_OXYGEN_ADDRESS;

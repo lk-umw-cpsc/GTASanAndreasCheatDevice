@@ -34,7 +34,6 @@ struct Pedestrian {
 	DWORD* pTargetBaseAddress;
 	float* health;
 	float* armor;
-	float* oxygen;
 };
 
 struct Vehicle {
@@ -88,6 +87,8 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 #define PLAYER_PEDESTRIAN_STRUCT_POINTER			0x00B6F5F0
 #define PLAYER_VEHICLE_STRUCT_POINTER				0x00BA18FC
 
+#define PLAYER_OXYGEN_ADDRESS						0xB7CDE0
+
 #define MULTI_VECTOR_STRUCT_POINTER_OFFSET			0x14
 #define ID_OFFSET									0x22
 #define TOUCH_POINTER_OFFSET						0xDC
@@ -105,7 +106,6 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define PEDESTRIAN_HEALTH_OFFSET					0x540
 #define PEDESTRIAN_ARMOR_OFFSET						0x548
-#define PEDESTRIAN_OXYGEN_OFFSET					0x550
 #define PEDESTRIAN_TARGET_POINTER_OFFSET			0x71C
 
 #define VEHICLE_ID_OFFSET							0x22
@@ -186,6 +186,7 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define LOSE_WEAPONS_ON_DEATH_INSTRUCTION_ADDRESS	0x5e6340
 
+
 extern const DWORD* const pPlayerPedBaseAddress;
 extern const DWORD* const pPlayerVehicleBaseAddress;
 extern const DWORD* const pWantedLevelBaseAddress;
@@ -194,6 +195,7 @@ extern EntityTable** ppVehicleTable;
 extern byte* const pNoCrimesFlag;
 extern float* gravity;
 extern float* bunnyHopMultiplier;
+extern float* playerOxygen;
 
 extern void(*displayMessage)(const char*, DWORD, DWORD, DWORD);
 extern void (*spawnExplosion)(DWORD cause, WORD id, float x, float y, float z, DWORD, DWORD, DWORD);

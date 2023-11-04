@@ -25,13 +25,13 @@ void disableNoWantedLevel() {
 void infiniteHealth() {
 	*player.health = 999.f;
 	*player.armor = 999.f;
-	*player.oxygen = 999.f;
+	*playerOxygen = 3000.f;
 }
 
 void infiniteHealthOff() {
 	*player.health = 100.f;
 	*player.armor = 100.f;
-	*player.oxygen = 100.f;
+	*playerOxygen = 1000.f;
 }
 
 void infiniteCarHealth() {
