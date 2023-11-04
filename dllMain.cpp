@@ -29,7 +29,7 @@ $(DXSDK_DIR)Lib\x86
 	* ??? more debug stuff?
 	
 	Ideas:
-	Don't lose weapons on death
+	Don't lose weapons on death 0x5e6340 0xEB 0x0B
 	Player movement speed
 	Player jump size (Moon jump) +0x8c, lower = higher jump
 	Vehicle mass
@@ -109,6 +109,7 @@ ActiveCheatMenuItem* mainMenuItems[] = {
 	new ActiveCheatMenuItem(&enableTrippy, &disableTrippy, nullptr, "Far Out! Mode", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, spawnExplosionAtTargetPedestrian, "D-pad Right Blows Up Pedestrian", false),
 	new ActiveCheatMenuItem(nullptr, nullptr, goAway, "Go Away!", false),
+	new ActiveCheatMenuItem(enableKeepWeaponsOnDeath, disableKeepWeaponsOnDeath, nullptr, "Keep Weapons Upon Death", true)
 };
 const int numMainMenuItems = sizeof(mainMenuItems) / sizeof(ActiveCheatMenuItem*);
 

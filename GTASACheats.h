@@ -41,3 +41,5 @@ void enableTrippy();
 void disableTrippy();
 void spawnExplosionAtTargetPedestrian();
 void goAway();
+void enableKeepWeaponsOnDeath();
+void disableKeepWeaponsOnDeath();

@@ -1,10 +1,16 @@
 #include <math.h>
+#include <chrono>
 
 #include "Memory.h"
 #include "GTA.h"
 #include "dllMain.h"
 
 #include "GTASACheats.h"
+
+long long getTime() {
+	using namespace std::chrono;
+	return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
 
 void noWantedLevel() {
 	*pNoCrimesFlag = 1;
@@ -623,16 +629,24 @@ void infiniteNos() {
 	}
 }
 
+long long dowTimer = 0;
+
 void driveOnWalls() {
 	if (!vehicle.baseAddress || vehicle.objectClass == CLASS_BOAT || vehicle.objectClass == CLASS_HELICOPTER) {
 		return;
 	}
-	Vector3d* up = vehicle.up;
-	Vector3d* velocity = vehicle.velocity;
+	long long now = getTime();
+	if (*vehicle.onGroundFlag & 1) {
+		dowTimer = now + 300;
+	}
+	if (now < dowTimer) {
+		Vector3d* up = vehicle.up;
+		Vector3d* velocity = vehicle.velocity;
 
-	velocity->x += -0.013 * up->x;
-	velocity->y += -0.013 * up->y;
-	velocity->z += -0.013 * up->z + 0.013;
+		velocity->x += -0.013 * up->x;
+		velocity->y += -0.013 * up->y;
+		velocity->z += -0.013 * up->z + 0.013;
+	}
 }
 
 BYTE overwrittenTrippyInstructions[2];
@@ -687,4 +701,14 @@ void goAway() {
 			v.velocity->y = position.y * speed;
 		}
 	}
+}
+
+BYTE loseWeaponsOnDeathInstructions[2];
+void enableKeepWeaponsOnDeath() {
+	BYTE jumpOver[2] = { 0xEB, 0x0B };
+	overwriteInstructions((void*)LOSE_WEAPONS_ON_DEATH_INSTRUCTION_ADDRESS, jumpOver, sizeof(jumpOver), loseWeaponsOnDeathInstructions);
+}
+
+void disableKeepWeaponsOnDeath() {
+	restoreInstructions((void*)LOSE_WEAPONS_ON_DEATH_INSTRUCTION_ADDRESS, loseWeaponsOnDeathInstructions, sizeof(loseWeaponsOnDeathInstructions));
 }

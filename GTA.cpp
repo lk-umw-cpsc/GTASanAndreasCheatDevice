@@ -56,6 +56,7 @@ void hookVehicle(DWORD baseAddress, Vehicle* vehicleOut) {
 	vehicleOut->mods = (byte*)(baseAddress + VEHICLE_MOD_OFFSET);
 	vehicleOut->nosCount = (byte*)(baseAddress + VEHICLE_NOS_COUNT_OFFSET);
 	vehicleOut->nosAmount = (float*)(baseAddress + VEHICLE_NOS_AMOUNT_OFFSET);
+	vehicleOut->onGroundFlag = (byte*)(baseAddress + VEHICLE_ON_GROUND_FLAG_OFFSET);
 }
 
 void hookVehicleMultiVector(DWORD baseAddress, Vehicle* vehicleOut) {

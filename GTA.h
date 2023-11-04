@@ -62,6 +62,7 @@ struct Vehicle {
 	byte* color1;
 	byte* color2;
 	byte* mods;
+	byte* onGroundFlag;
 };
 
 struct WantedLevel {
@@ -121,6 +122,7 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 #define VEHICLE_MOD_OFFSET							0x38E
 #define VEHICLE_NOS_COUNT_OFFSET					0x48A // +0x38E NOS... OR 0x20... +0x43A 0x03F2
 #define VEHICLE_NOS_AMOUNT_OFFSET					0x8A4
+#define VEHICLE_ON_GROUND_FLAG_OFFSET				0xB9
 
 #define NOS_ENABLED									0x08
 
@@ -181,6 +183,8 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define BUNNY_HOP_MULTIPLIER_ADDRESS				0x00858C80
 #define JUMP_OVER_BHMULTIPLIER_INSTRUCTION_ADDRESS	0x6C0439
+
+#define LOSE_WEAPONS_ON_DEATH_INSTRUCTION_ADDRESS	0x5e6340
 
 extern const DWORD* const pPlayerPedBaseAddress;
 extern const DWORD* const pPlayerVehicleBaseAddress;
