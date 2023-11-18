@@ -635,17 +635,17 @@ void driveOnWalls() {
 	if (!vehicle.baseAddress || vehicle.objectClass == CLASS_BOAT || vehicle.objectClass == CLASS_HELICOPTER) {
 		return;
 	}
+	float gs = *gameSpeed;
 	long long now = getTime();
 	if (*vehicle.onGroundFlag & 1) {
-		dowTimer = now + 300;
+		dowTimer = now + (long long)(300 / gs);
 	}
 	if (now < dowTimer) {
 		Vector3d* up = vehicle.up;
 		Vector3d* velocity = vehicle.velocity;
-
-		velocity->x += -0.013 * up->x;
-		velocity->y += -0.013 * up->y;
-		velocity->z += -0.013 * up->z + 0.013;
+		velocity->x += -0.013 * up->x * gs;
+		velocity->y += -0.013 * up->y * gs;
+		velocity->z += -0.013 * up->z * gs + 0.013 * gs;
 	}
 }
 

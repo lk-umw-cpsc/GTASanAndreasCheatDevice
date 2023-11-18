@@ -492,6 +492,13 @@ string dwordToString(DWORD d) {
 	return string(stream.str());
 }
 
+string floatToString(float f, int precision) {
+	ostringstream out;
+	out.precision(precision);
+	out << fixed << f;
+	return move(out).str();
+}
+
 LPD3DXFONT dbgpFont = NULL;
 LPD3DXSPRITE dbgpSprite = NULL;
 void initDebugMenu(LPDIRECT3DDEVICE9 pDevice, D3DVIEWPORT9* viewport) {
@@ -543,5 +550,43 @@ void releaseDebugMenuD3DObjects() {
 	}
 	if (dbgpSprite) {
 		dbgpSprite->Release();
+	}
+}
+
+GameSpeedMenuItem::GameSpeedMenuItem() {
+	this->on = false;
+}
+
+string GameSpeedMenuItem::getText() {
+	if (on) {
+		return "Game speed: " + floatToString(*gameSpeed, 2) + " ON";
+	}
+	else {
+		return "Game speed: " + floatToString(*gameSpeed, 2) + " OFF";
+	}
+}
+
+void GameSpeedMenuItem::onLeftInput() {
+	if (!on) {
+		on = true;
+	}
+	float currentSpeed = *gameSpeed;
+	currentSpeed -= .0625;
+	if (currentSpeed > 0) {
+		*gameSpeed = currentSpeed;
+	}
+}
+
+void GameSpeedMenuItem::onRightInput() {
+	if (!on) {
+		on = true;
+	}
+	*gameSpeed += .0625;
+}
+
+void GameSpeedMenuItem::onActivate() {
+	on = !on;
+	if (!on) {
+		*gameSpeed = 1;
 	}
 }

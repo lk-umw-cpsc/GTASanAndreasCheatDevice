@@ -113,6 +113,17 @@ public:
 	void onActivate();
 };
 
+class GameSpeedMenuItem : public CheatMenuItem {
+private:
+	bool on;
+public:
+	GameSpeedMenuItem();
+	string getText();
+	void onLeftInput();
+	void onRightInput();
+	void onActivate();
+};
+
 void initDebugMenu(LPDIRECT3DDEVICE9 pDevice, D3DVIEWPORT9* viewport);
 void drawDebugMenu(LPDIRECT3DDEVICE9 pDevice);
 void drawDebugLine(LPDIRECT3DDEVICE9 pDevice, string s, int line);

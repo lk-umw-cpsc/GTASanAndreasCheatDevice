@@ -85,5 +85,6 @@ voidObjectFunction freezePedestrian = (voidObjectFunction)0x005DED10;
 voidObjectFunction killPedestrian = (voidObjectFunction)0x005E5320; //0x02 for kill
 
 float* bunnyHopMultiplier = (float*)BUNNY_HOP_MULTIPLIER_ADDRESS;
+float* gameSpeed = (float*)GAME_SPEED_ADDRESS;
 
 float* playerOxygen = (float*)PLAYER_OXYGEN_ADDRESS;

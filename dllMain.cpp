@@ -27,6 +27,8 @@ $(DXSDK_DIR)Lib\x86
 /*
 	Menu improvements:
 	* ??? more debug stuff?
+	* 
+	* 0xB7CB64 float game speed. 1.0 standard, .3 "standard" slomo
 	
 	Ideas:
 	Don't lose weapons on death 0x5e6340 0xEB 0x0B
@@ -81,6 +83,7 @@ CheatMenuItem* menuItems[] = {
 	new StepUpMenuItem(),
 	new StepDownMenuItem(),
 	new BunnyHopMenuItem(),
+	new GameSpeedMenuItem(),
 	new SelfDestructMenuItem()
 };
 const int numQuickMenuItems = sizeof(menuItems) / sizeof(CheatMenuItem*);

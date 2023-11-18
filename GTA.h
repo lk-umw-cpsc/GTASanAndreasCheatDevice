@@ -186,6 +186,7 @@ void hookWantedLevel(DWORD baseAddress, WantedLevel* wlOut);
 
 #define LOSE_WEAPONS_ON_DEATH_INSTRUCTION_ADDRESS	0x5e6340
 
+#define GAME_SPEED_ADDRESS							0xB7CB64
 
 extern const DWORD* const pPlayerPedBaseAddress;
 extern const DWORD* const pPlayerVehicleBaseAddress;
@@ -196,6 +197,7 @@ extern byte* const pNoCrimesFlag;
 extern float* gravity;
 extern float* bunnyHopMultiplier;
 extern float* playerOxygen;
+extern float* gameSpeed;
 
 extern void(*displayMessage)(const char*, DWORD, DWORD, DWORD);
 extern void (*spawnExplosion)(DWORD cause, WORD id, float x, float y, float z, DWORD, DWORD, DWORD);
