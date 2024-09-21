@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "GTA.h"
 #include "GTACheatMenu.h"
 #include <string>
@@ -589,4 +590,12 @@ void GameSpeedMenuItem::onActivate() {
 	if (!on) {
 		*gameSpeed = 1;
 	}
+}
+
+string UnloadMenuItem::getText() {
+	return "Unload Cheat Device";
+}
+
+void UnloadMenuItem::onActivate() {
+	beginExit();
 }

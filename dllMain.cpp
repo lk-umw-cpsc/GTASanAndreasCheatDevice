@@ -13,6 +13,7 @@
 #include "GTASACheats.h"
 #include "Memory.h"
 #include "D3D9EndSceneHook.h"
+#include "Common.h"
 
 #include "dllMain.h"
 
@@ -84,7 +85,8 @@ CheatMenuItem* menuItems[] = {
 	new StepDownMenuItem(),
 	new BunnyHopMenuItem(),
 	new GameSpeedMenuItem(),
-	new SelfDestructMenuItem()
+	new SelfDestructMenuItem(),
+	new UnloadMenuItem()
 };
 const int numQuickMenuItems = sizeof(menuItems) / sizeof(CheatMenuItem*);
 
